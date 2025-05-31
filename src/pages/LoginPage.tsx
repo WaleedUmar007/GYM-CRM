@@ -13,7 +13,11 @@ export default function LoginPage({ onLoginSuccess }: LoginPageProps) {
 
   function handleLogin(e: React.FormEvent) {
     e.preventDefault();
-    if (email === 'admin@kotlagymkhana.com' && password === 'pak786') {
+    if (email === 'superadmin@kotlagymkhana.com' && password === 'pak786') {
+      setError('');
+      onLoginSuccess?.();
+      navigate('/superadmin/dashboard');
+    } else if (email === 'admin@kotlagymkhana.com' && password === 'pak786') {
       setError('');
       onLoginSuccess?.();
       navigate('/admin');
