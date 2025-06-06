@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import AdminLayout from './AdminLayout';
+import AdminLayout from '../layouts/AdminLayout';
 
 const allMembers = [
   { type: 'Gold', count: 60, cleared: 50000 },

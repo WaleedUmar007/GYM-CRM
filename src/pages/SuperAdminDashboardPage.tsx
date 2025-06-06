@@ -10,7 +10,6 @@ import {
   CartesianGrid,
 } from 'recharts';
 import SuperAdminMembersPage from './SuperAdminMembersPage';
-import SuperAdminLayout from '../layouts/SuperAdminLayout';
 
 const stats = [
   {
@@ -82,7 +81,7 @@ export default function SuperAdminDashboardPage() {
   }
 
   return (
-    <SuperAdminLayout>
+    <>
       {active === 'Dashboard' && (
         <>
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8 w-full">
@@ -114,6 +113,6 @@ export default function SuperAdminDashboardPage() {
         </>
       )}
       {active === 'Members' && <SuperAdminMembersPage />}
-    </SuperAdminLayout>
+    </>
   );
 } 

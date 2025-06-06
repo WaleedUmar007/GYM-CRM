@@ -1,5 +1,4 @@
 import { useState } from 'react';
-import SuperAdminLayout from '../layouts/SuperAdminLayout';
 
 const mockMembers = [
   { id: 1, name: 'Ali Raza', email: 'ali.raza@gmail.com', phone: '0300-1234567', status: 'Active', joined: '2023-01-10' },
@@ -28,7 +27,7 @@ export default function SuperAdminMembersPage() {
   }
 
   return (
-    <SuperAdminLayout>
+    <>
       <div className="p-8 bg-[#f6faff] min-h-screen w-full">
         {/* Cards */}
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8 w-full">
@@ -147,6 +146,6 @@ export default function SuperAdminMembersPage() {
           </div>
         )}
       </div>
-    </SuperAdminLayout>
+    </>
   );
 } 

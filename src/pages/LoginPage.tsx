@@ -1,29 +1,54 @@
-import { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { loadUser, login } from "@/appRedux/actions/authAction";
+import { AuthSelector } from "@/appRedux/reducers";
+import { useAppDispatch } from "@/appRedux/store";
+import { UserRoles } from "@/types";
+import { useEffect, useState } from "react";
+import { useSelector } from "react-redux";
+import { useNavigate } from "react-router-dom";
 
-interface LoginPageProps {
-  onLoginSuccess?: () => void;
-}
-
-export default function LoginPage({ onLoginSuccess }: LoginPageProps) {
+export default function LoginPage() {
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+  // const [error, setError] = useState("");
+  const dispatch = useAppDispatch();
+  const { isAuthenticated, user } = useSelector(AuthSelector);
   const navigate = useNavigate();
-  const [email, setEmail] = useState('');
-  const [password, setPassword] = useState('');
-  const [error, setError] = useState('');
+
+  useEffect(() => {
+    dispatch(loadUser());
+  }, []);
+
+  useEffect(() => {
+    if (isAuthenticated && user) {
+      if (user.role === UserRoles.Admin) {
+        navigate("/admin");
+      } else if (user.role === UserRoles.SuperAdmin) {
+        navigate("/s-admin");
+      }
+    }
+  }, [isAuthenticated, user]);
 
   function handleLogin(e: React.FormEvent) {
     e.preventDefault();
-    if (email === 'superadmin@kotlagymkhana.com' && password === 'pak786') {
-      setError('');
-      onLoginSuccess?.();
-      navigate('/superadmin/dashboard');
-    } else if (email === 'admin@kotlagymkhana.com' && password === 'pak786') {
-      setError('');
-      onLoginSuccess?.();
-      navigate('/admin');
-    } else {
-      setError('Invalid credentials');
+    if (email !== "" && password !== "") {
+      dispatch(
+        login({
+          email: email,
+          password: password,
+        })
+      );
     }
+    // if (email === "superadmin@kotlagymkhana.com" && password === "pak786") {
+    //   setError("");
+    //   onLoginSuccess?.();
+    //   navigate("/s-admin");
+    // } else if (email === "admin@kotlagymkhana.com" && password === "pak786") {
+    //   setError("");
+    //   onLoginSuccess?.();
+    //   navigate("/admin");
+    // } else {
+    //   setError("Invalid credentials");
+    // }
   }
 
   return (
@@ -43,7 +68,7 @@ export default function LoginPage({ onLoginSuccess }: LoginPageProps) {
             className="w-full px-4 py-2 rounded-md bg-[#f6faff] border border-transparent focus:border-blue-500 focus:bg-white focus:outline-none transition text-black"
             placeholder="admin@example.com"
             value={email}
-            onChange={e => setEmail(e.target.value)}
+            onChange={(e) => setEmail(e.target.value)}
           />
           <input
             id="password"
@@ -52,9 +77,8 @@ export default function LoginPage({ onLoginSuccess }: LoginPageProps) {
             className="w-full px-4 py-2 rounded-md bg-[#f6faff] border border-transparent focus:border-blue-500 focus:bg-white focus:outline-none transition text-black"
             placeholder="••••••••"
             value={password}
-            onChange={e => setPassword(e.target.value)}
+            onChange={(e) => setPassword(e.target.value)}
           />
-          {error && <div className="text-red-500 text-sm text-center">{error}</div>}
           <button
             type="submit"
             className="w-full bg-blue-600 hover:bg-blue-700 text-white font-semibold py-2 rounded-md transition-colors text-base mt-2 shadow-sm"
@@ -65,4 +89,4 @@ export default function LoginPage({ onLoginSuccess }: LoginPageProps) {
       </div>
     </div>
   );
-} 
+}
