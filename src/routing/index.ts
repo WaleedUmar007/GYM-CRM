@@ -8,6 +8,8 @@ import AdminPage from "@/pages/AdminPage";
 // super admin routes
 import SuperAdminDashboardPage from "@/pages/SuperAdminDashboardPage";
 import SuperAdminMembersPage from "@/pages/SuperAdminMembersPage";
+import SuperAdminSettingsPage from "@/pages/SuperAdminSettingsPage";
+import SuperAdminReportsPage from "@/pages/SuperAdminReportsPage";
 
 export const adminRoutes: Array<IRoute> = [
   {
@@ -41,6 +43,20 @@ export const superAdminRoutes: Array<IRoute> = [
     component: SuperAdminMembersPage,
     label: "Users",
     id: "users",
+    authenticatedUsers: [UserRoles.SuperAdmin],
+  },
+  {
+    path: "settings",
+    component: SuperAdminSettingsPage,
+    label: "Settings",
+    id: "settings",
+    authenticatedUsers: [UserRoles.SuperAdmin],
+  },
+  {
+    path: "reports",
+    component: SuperAdminReportsPage,
+    label: "Reports",
+    id: "reports",
     authenticatedUsers: [UserRoles.SuperAdmin],
   },
 ];

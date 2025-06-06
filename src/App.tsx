@@ -62,7 +62,7 @@ function App() {
           </Route>
 
           <Route
-            path="s-admin"
+            path="superadmin"
             element={
               <RequireAuth>
                 <SuperAdminLayout />

@@ -1,11 +1,31 @@
 import { useState } from 'react';
 
-const mockMembers = [
-  { id: 1, name: 'Ali Raza', email: 'ali.raza@gmail.com', phone: '0300-1234567', status: 'Active', joined: '2023-01-10' },
-  { id: 2, name: 'Sara Khan', email: 'sara.khan@gmail.com', phone: '0301-9876543', status: 'Inactive', joined: '2022-11-22' },
-  { id: 3, name: 'Bilal Ahmed', email: 'bilal.ahmed@gmail.com', phone: '0321-5555555', status: 'Active', joined: '2023-03-05' },
+interface Member {
+  id: number;
+  name: string;
+  email: string;
+  phone: string;
+  membershipNumber: string;
+  status: string;
+  joined: string;
+}
+
+interface Admin {
+  id: number;
+  name: string;
+  email: string;
+  phone: string;
+  status: string;
+  joined: string;
+}
+
+const mockMembers: Member[] = [
+  { id: 1, name: 'Ali Raza', email: 'ali.raza@gmail.com', phone: '0300-1234567', membershipNumber: 'KGK10025A', status: 'Active', joined: '2023-01-10' },
+  { id: 2, name: 'Sara Khan', email: 'sara.khan@gmail.com', phone: '0301-9876543', membershipNumber: 'KGK23476B', status: 'Inactive', joined: '2022-11-22' },
+  { id: 3, name: 'Bilal Ahmed', email: 'bilal.ahmed@gmail.com', phone: '0321-5555555', membershipNumber: 'KGK89732C', status: 'Active', joined: '2023-03-05' },
 ];
-const mockAdmins = [
+
+const mockAdmins: Admin[] = [
   { id: 1, name: 'Admin One', email: 'admin1@kotlagymkhana.com', phone: '0300-0000001', status: 'Active', joined: '2022-01-01' },
   { id: 2, name: 'Admin Two', email: 'admin2@kotlagymkhana.com', phone: '0300-0000002', status: 'Active', joined: '2022-06-15' },
 ];
@@ -13,7 +33,7 @@ const mockAdmins = [
 export default function SuperAdminMembersPage() {
   const [membersFilter, setMembersFilter] = useState<'members' | 'admins'>('members');
   const [showAddAdmin, setShowAddAdmin] = useState(false);
-  const [admins, setAdmins] = useState(mockAdmins);
+  const [admins, setAdmins] = useState<Admin[]>(mockAdmins);
   const [newAdmin, setNewAdmin] = useState({ name: '', email: '', phone: '' });
 
   function handleAddAdmin(e: React.FormEvent) {
@@ -77,22 +97,38 @@ export default function SuperAdminMembersPage() {
                 <th className="py-2 px-4">Name</th>
                 <th className="py-2 px-4">Email</th>
                 <th className="py-2 px-4">Phone</th>
+                {membersFilter === 'members' && <th className="py-2 px-4">Membership Number</th>}
                 <th className="py-2 px-4">Status</th>
                 <th className="py-2 px-4">Joined</th>
               </tr>
             </thead>
             <tbody>
-              {(membersFilter === 'members' ? mockMembers : admins).map((m) => (
-                <tr key={m.id} className="border-b last:border-b-0 hover:bg-blue-50">
-                  <td className="py-2 px-4 font-medium">{m.name}</td>
-                  <td className="py-2 px-4">{m.email}</td>
-                  <td className="py-2 px-4">{m.phone}</td>
-                  <td className="py-2 px-4">
-                    <span className={`px-2 py-1 rounded text-xs font-semibold ${m.status === 'Active' ? 'bg-green-100 text-green-700' : 'bg-gray-200 text-gray-600'}`}>{m.status}</span>
-                  </td>
-                  <td className="py-2 px-4">{m.joined}</td>
-                </tr>
-              ))}
+              {membersFilter === 'members' ? (
+                mockMembers.map((m) => (
+                  <tr key={m.id} className="border-b last:border-b-0 hover:bg-blue-50">
+                    <td className="py-2 px-4 font-medium">{m.name}</td>
+                    <td className="py-2 px-4">{m.email}</td>
+                    <td className="py-2 px-4">{m.phone}</td>
+                    <td className="py-2 px-4 font-semibold text-blue-600">{m.membershipNumber}</td>
+                    <td className="py-2 px-4">
+                      <span className={`px-2 py-1 rounded text-xs font-semibold ${m.status === 'Active' ? 'bg-green-100 text-green-700' : 'bg-gray-200 text-gray-600'}`}>{m.status}</span>
+                    </td>
+                    <td className="py-2 px-4">{m.joined}</td>
+                  </tr>
+                ))
+              ) : (
+                admins.map((m) => (
+                  <tr key={m.id} className="border-b last:border-b-0 hover:bg-blue-50">
+                    <td className="py-2 px-4 font-medium">{m.name}</td>
+                    <td className="py-2 px-4">{m.email}</td>
+                    <td className="py-2 px-4">{m.phone}</td>
+                    <td className="py-2 px-4">
+                      <span className={`px-2 py-1 rounded text-xs font-semibold ${m.status === 'Active' ? 'bg-green-100 text-green-700' : 'bg-gray-200 text-gray-600'}`}>{m.status}</span>
+                    </td>
+                    <td className="py-2 px-4">{m.joined}</td>
+                  </tr>
+                ))
+              )}
             </tbody>
           </table>
         </div>

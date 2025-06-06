@@ -19,7 +19,7 @@ export default function AdminLayout() {
         if (user.role === UserRoles.Admin) {
           navigate("/admin");
         } else if (user.role === UserRoles.SuperAdmin) {
-          navigate("/s-admin");
+          navigate("/superadmin");
         }
       } else {
         navigate("/login");

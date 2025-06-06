@@ -23,7 +23,7 @@ export default function LoginPage() {
       if (user.role === UserRoles.Admin) {
         navigate("/admin");
       } else if (user.role === UserRoles.SuperAdmin) {
-        navigate("/s-admin");
+        navigate("/superadmin");
       }
     }
   }, [isAuthenticated, user]);
@@ -41,7 +41,7 @@ export default function LoginPage() {
     // if (email === "superadmin@kotlagymkhana.com" && password === "pak786") {
     //   setError("");
     //   onLoginSuccess?.();
-    //   navigate("/s-admin");
+    //   navigate("/superadmin");
     // } else if (email === "admin@kotlagymkhana.com" && password === "pak786") {
     //   setError("");
     //   onLoginSuccess?.();

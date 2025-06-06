@@ -3,11 +3,11 @@ import { useAppDispatch } from "@/appRedux/store";
 import { Link, Outlet, useLocation } from "react-router-dom";
 
 const navLinks = [
-  { label: "Dashboard", icon: "🏠", to: "/superadmin/dashboard" },
-  { label: "Members", icon: "👥", to: "/superadmin/members" },
-  { label: "Payments", icon: "💳", to: "#" },
-  { label: "Reports", icon: "📊", to: "#" },
-  { label: "Settings", icon: "⚙️", to: "#" },
+  { label: 'Dashboard', icon: '🏠', to: '/superadmin/dashboard' },
+  { label: 'Members', icon: '👥', to: '/superadmin/members' },
+  { label: 'Payments', icon: '💳', to: '#' },
+  { label: 'Reports', icon: '📊', to: '/superadmin/reports' },
+  { label: 'Settings', icon: '⚙️', to: '/superadmin/settings' },
 ];
 
 export default function SuperAdminLayout() {
