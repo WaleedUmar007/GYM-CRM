@@ -43,7 +43,7 @@ export default function AdminLayout() {
               className={`w-full flex items-center gap-2 px-3 py-2 rounded-lg font-medium ${
                 location.pathname === "" ? "bg-[#1a2940]" : "bg-[#22304a]"
               } text-white`}
-              onClick={() => navigate("/dashboard")}
+              onClick={() => navigate("/admin")}
             >
               <span>Dashboard</span>
             </button>
