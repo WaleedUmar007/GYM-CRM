@@ -9,7 +9,7 @@ const navLinks = [
   { label: 'Dashboard', icon: '🏠', to: '/superadmin/dashboard' },
   { label: 'Members', icon: '👥', to: '/superadmin/members' },
   { label: 'Payments', icon: '💳', to: '#' },
-  { label: 'Reports', icon: '📊', to: '#' },
+  { label: 'Reports', icon: '📊', to: '/superadmin/reports' },
   { label: 'Settings', icon: '⚙️', to: '/superadmin/settings' },
 ];
 
