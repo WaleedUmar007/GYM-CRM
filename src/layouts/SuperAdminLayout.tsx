@@ -10,7 +10,7 @@ const navLinks = [
   { label: 'Members', icon: '👥', to: '/superadmin/members' },
   { label: 'Payments', icon: '💳', to: '#' },
   { label: 'Reports', icon: '📊', to: '#' },
-  { label: 'Settings', icon: '⚙️', to: '#' },
+  { label: 'Settings', icon: '⚙️', to: '/superadmin/settings' },
 ];
 
 export default function SuperAdminLayout({ children }: SuperAdminLayoutProps) {
