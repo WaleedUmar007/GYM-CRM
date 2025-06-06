@@ -1,12 +1,33 @@
 import { useState } from 'react';
 import AdminLayout from './AdminLayout';
 
-const initialCustomers = [
+// Interface for customer data
+interface Customer {
+  name: string;
+  email: string;
+  phone: string;
+  membership: string;
+  membershipNumber: string;
+  amount: string;
+  status: string;
+  lastPayment: string;
+  addedBy: string;
+}
+
+// Membership package pricing
+const membershipPricing = {
+  'Basic': 'PKR 2,000',
+  'Standard': 'PKR 3,500',
+  'Premium': 'PKR 5,000',
+};
+
+const initialCustomers: Customer[] = [
   {
     name: 'waleed',
     email: 'admin@example.com',
     phone: '03215847395',
     membership: 'Gold',
+    membershipNumber: 'KGK10025A',
     amount: 'PKR 9,999',
     status: 'Cleared',
     lastPayment: '2025-05-27',
@@ -17,10 +38,55 @@ const initialCustomers = [
 export default function AdminPage() {
   const [showModal, setShowModal] = useState(false);
   const [showEditModal, setShowEditModal] = useState(false);
-  const [customers, setCustomers] = useState(initialCustomers);
+  const [customers, setCustomers] = useState<Customer[]>(initialCustomers);
   const [editIndex, setEditIndex] = useState<number | null>(null);
   const [editStatus, setEditStatus] = useState('Cleared');
   const [editDate, setEditDate] = useState('');
+  const [newCustomer, setNewCustomer] = useState<Omit<Customer, 'membershipNumber' | 'amount'>>({
+    name: '',
+    email: '',
+    phone: '',
+    membership: '',
+    status: 'Pending',
+    lastPayment: new Date().toISOString().split('T')[0],
+    addedBy: 'Admin',
+  });
+
+  // Function to generate a unique membership number
+  const generateMembershipNumber = (): string => {
+    // Prefix with KGK (Kotla GymKhana)
+    const prefix = 'KGK';
+    
+    // Add a 5-digit number
+    const number = Math.floor(10000 + Math.random() * 90000);
+    
+    // Add a random uppercase letter
+    const letter = String.fromCharCode(65 + Math.floor(Math.random() * 26));
+    
+    return `${prefix}${number}${letter}`;
+  };
+
+  // Function to check if a membership number already exists
+  const isMembershipNumberUnique = (membershipNumber: string): boolean => {
+    return !customers.some(customer => customer.membershipNumber === membershipNumber);
+  };
+
+  // Function to get a unique membership number
+  const getUniqueMembershipNumber = (): string => {
+    let membershipNumber = generateMembershipNumber();
+    
+    // Keep generating until we get a unique one
+    while (!isMembershipNumberUnique(membershipNumber)) {
+      membershipNumber = generateMembershipNumber();
+    }
+    
+    return membershipNumber;
+  };
+
+  // Get amount based on membership type
+  const getAmountForMembership = (membershipType: string): string => {
+    return membershipPricing[membershipType as keyof typeof membershipPricing] || 'PKR 0';
+  };
 
   function openEditModal(index: number) {
     setEditIndex(index);
@@ -40,6 +106,38 @@ export default function AdminPage() {
       setCustomers(updated);
       setShowEditModal(false);
     }
+  }
+
+  function handleAddCustomer(e: React.FormEvent) {
+    e.preventDefault();
+    
+    // Generate a unique membership number
+    const membershipNumber = getUniqueMembershipNumber();
+    
+    // Get the amount based on the selected membership type
+    const amount = getAmountForMembership(newCustomer.membership);
+    
+    // Add the new customer with the generated membership number and calculated amount
+    setCustomers([
+      ...customers, 
+      { 
+        ...newCustomer, 
+        membershipNumber,
+        amount
+      }
+    ]);
+    
+    // Reset the form and close the modal
+    setNewCustomer({
+      name: '',
+      email: '',
+      phone: '',
+      membership: '',
+      status: 'Pending',
+      lastPayment: new Date().toISOString().split('T')[0],
+      addedBy: 'Admin',
+    });
+    setShowModal(false);
   }
 
   return (
@@ -78,6 +176,7 @@ export default function AdminPage() {
             <tr className="bg-gray-50 text-gray-700">
               <th className="px-4 py-3 text-left font-semibold">Name</th>
               <th className="px-4 py-3 text-left font-semibold">Contact Info</th>
+              <th className="px-4 py-3 text-left font-semibold">Membership Number</th>
               <th className="px-4 py-3 text-left font-semibold">Membership</th>
               <th className="px-4 py-3 text-left font-semibold">Amount</th>
               <th className="px-4 py-3 text-left font-semibold">Payment Status</th>
@@ -95,9 +194,10 @@ export default function AdminPage() {
                   <br />
                   {c.phone}
                 </td>
+                <td className="px-4 py-3 font-semibold text-blue-600">{c.membershipNumber}</td>
                 <td className="px-4 py-3">{c.membership}</td>
                 <td className="px-4 py-3">{c.amount}</td>
-                <td className={`px-4 py-3 font-semibold flex items-center gap-1 ${c.status === 'Cleared' ? 'text-green-600' : 'text-red-500'}`}>{c.status} <span>✔</span></td>
+                <td className={`px-4 py-3 font-semibold flex items-center gap-1 ${c.status === 'Cleared' ? 'text-green-600' : 'text-red-500'}`}>{c.status} {c.status === 'Cleared' && <span>✔</span>}</td>
                 <td className="px-4 py-3">{c.lastPayment}</td>
                 <td className="px-4 py-3">{c.addedBy}</td>
                 <td className="px-4 py-3 text-blue-500 cursor-pointer">
@@ -108,22 +208,62 @@ export default function AdminPage() {
           </tbody>
         </table>
       </div>
-      {/* Add Customer Modal (UI only) */}
+      {/* Add Customer Modal */}
       {showModal && (
         <div className="fixed inset-0 bg-black bg-opacity-30 flex items-center justify-center z-50">
           <div className="bg-white rounded-xl shadow-lg p-8 w-full max-w-md">
             <h3 className="text-xl font-bold mb-4 text-black">Add Customer</h3>
-            <form className="space-y-4">
-              <input className="w-full px-4 py-2 border border-gray-300 rounded-lg bg-white text-black placeholder-gray-600" placeholder="Name" />
-              <input className="w-full px-4 py-2 border border-gray-300 rounded-lg bg-white text-black placeholder-gray-600" placeholder="Email" />
-              <input className="w-full px-4 py-2 border border-gray-300 rounded-lg bg-white text-black placeholder-gray-600" placeholder="Phone" />
-              <input className="w-full px-4 py-2 border border-gray-300 rounded-lg bg-white text-black placeholder-gray-600" placeholder="Membership" />
-              <input className="w-full px-4 py-2 border border-gray-300 rounded-lg bg-white text-black placeholder-gray-600" placeholder="Amount" />
+            <form className="space-y-4" onSubmit={handleAddCustomer}>
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">Name</label>
+                <input 
+                  className="w-full px-4 py-2 border border-gray-300 rounded-lg bg-white text-black placeholder-gray-600" 
+                  placeholder="Enter customer name" 
+                  value={newCustomer.name}
+                  onChange={(e) => setNewCustomer({...newCustomer, name: e.target.value})}
+                  required
+                />
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">Email</label>
+                <input 
+                  type="email"
+                  className="w-full px-4 py-2 border border-gray-300 rounded-lg bg-white text-black placeholder-gray-600" 
+                  placeholder="Enter email address" 
+                  value={newCustomer.email}
+                  onChange={(e) => setNewCustomer({...newCustomer, email: e.target.value})}
+                  required
+                />
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">Phone</label>
+                <input 
+                  className="w-full px-4 py-2 border border-gray-300 rounded-lg bg-white text-black placeholder-gray-600" 
+                  placeholder="Enter phone number" 
+                  value={newCustomer.phone}
+                  onChange={(e) => setNewCustomer({...newCustomer, phone: e.target.value})}
+                  required
+                />
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">Membership Type</label>
+                <select
+                  className="w-full px-4 py-2 border border-gray-300 rounded-lg bg-white text-black"
+                  value={newCustomer.membership}
+                  onChange={(e) => setNewCustomer({...newCustomer, membership: e.target.value})}
+                  required
+                >
+                  <option value="">Select membership type</option>
+                  <option value="Basic">Basic (PKR 2,000)</option>
+                  <option value="Standard">Standard (PKR 3,500)</option>
+                  <option value="Premium">Premium (PKR 5,000)</option>
+                </select>
+              </div>
               <div className="flex justify-end gap-2 pt-2">
                 <button type="button" className="px-4 py-2 rounded bg-red-600 text-white" onClick={() => setShowModal(false)}>
                   Cancel
                 </button>
-                <button type="button" className="px-4 py-2 rounded bg-blue-600 text-white">
+                <button type="submit" className="px-4 py-2 rounded bg-blue-600 text-white">
                   Add
                 </button>
               </div>
@@ -137,22 +277,33 @@ export default function AdminPage() {
           <div className="bg-white rounded-xl shadow-lg p-8 w-full max-w-md">
             <h3 className="text-xl font-bold mb-4 text-black">Edit Payment Status</h3>
             <form className="space-y-4" onSubmit={e => { e.preventDefault(); saveEdit(); }}>
-              <label className="block text-gray-700 font-medium">Payment Status</label>
-              <select
-                className="w-full px-4 py-2 border border-gray-300 rounded-lg bg-white text-black"
-                value={editStatus}
-                onChange={e => setEditStatus(e.target.value)}
-              >
-                <option value="Cleared">Cleared</option>
-                <option value="Pending">Pending</option>
-              </select>
-              <label className="block text-gray-700 font-medium">Last Payment Date</label>
-              <input
-                type="date"
-                className="w-full px-4 py-2 border border-gray-300 rounded-lg bg-white text-black"
-                value={editDate}
-                onChange={e => setEditDate(e.target.value)}
-              />
+              <div className="mb-4">
+                <label className="block text-sm font-medium text-gray-700 mb-1">Membership Number</label>
+                <div className="px-4 py-2 border border-gray-200 rounded-lg bg-gray-50 text-gray-800 font-semibold">
+                  {customers[editIndex].membershipNumber}
+                </div>
+                <p className="text-xs text-gray-500 mt-1">Membership number cannot be changed</p>
+              </div>
+              <div>
+                <label className="block text-gray-700 font-medium">Payment Status</label>
+                <select
+                  className="w-full px-4 py-2 border border-gray-300 rounded-lg bg-white text-black"
+                  value={editStatus}
+                  onChange={e => setEditStatus(e.target.value)}
+                >
+                  <option value="Cleared">Cleared</option>
+                  <option value="Pending">Pending</option>
+                </select>
+              </div>
+              <div>
+                <label className="block text-gray-700 font-medium">Last Payment Date</label>
+                <input
+                  type="date"
+                  className="w-full px-4 py-2 border border-gray-300 rounded-lg bg-white text-black"
+                  value={editDate}
+                  onChange={e => setEditDate(e.target.value)}
+                />
+              </div>
               <div className="flex justify-end gap-2 pt-2">
                 <button type="button" className="px-4 py-2 rounded bg-red-600 text-white" onClick={() => setShowEditModal(false)}>
                   Cancel
