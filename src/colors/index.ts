@@ -1,5 +1,9 @@
 import type { CSSProperties } from "react";
 
+interface IColor {
+  [color: string]: string;
+}
+
 interface IAlertTypes {
   [key: string]: CSSProperties;
 }
@@ -27,6 +31,30 @@ const getAlertColors: IAlertTypes = {
   },
 };
 
+/* Theme COlors */
+
+const color: IColor = {
+  /**
+   * general
+   */
+  info: "#9D1D96",
+  primary: "#111C4E",
+  white: "#ffff",
+  /**
+   * Severity
+   */
+  critical: "rgba(204, 51, 98, 1)",
+  high: "rgba(255, 89, 90, 1)",
+  medium: "rgba(255, 193, 7, 0.7)",
+  low: "#E50695",
+
+  /**
+   * Verification
+   */
+  false: "#CC3362",
+  true: "#45BF55",
+};
+
 /**
  * Color used in alert here
  *
@@ -38,4 +66,14 @@ export const getAlertStyle = (type: string): CSSProperties => {
     return getAlertColors.error;
   }
   return getAlertColors[type];
+};
+
+/**
+ * Color used in tags and other components are defined here
+ *
+ * @param {string} type - color type
+ * @returns {string} color - color value
+ */
+export const getColor = (type: string): string => {
+  return color[type.toLowerCase()];
 };

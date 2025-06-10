@@ -1,5 +1,5 @@
-import { FormInstance } from 'antd';
-import moment from 'moment';
+import type { FormInstance } from "antd";
+import moment from "moment";
 
 /**
  * Humanize coded text
@@ -10,11 +10,11 @@ import moment from 'moment';
 export const humanize = (str: string): string => {
   const zero = 0;
   const one = 1;
-  const frags = str.split('_');
+  const frags = str.split("_");
   for (let i = zero; i < frags.length; i++) {
     frags[i] = frags[i].charAt(zero).toUpperCase() + frags[i].slice(one);
   }
-  return frags.join(' ');
+  return frags.join(" ");
 };
 
 /**
@@ -38,32 +38,35 @@ export const searchInArrayOfObjectsandStrings = (
      */
     return filter.some((f) => {
       try {
-        if (typeof obj === 'string') {
+        if (typeof obj === "string") {
           return obj.toLowerCase().indexOf(search.toLowerCase()) > minusOne;
         }
-        if (typeof f === 'string') {
-          if (typeof obj[f] === 'string') {
+        if (typeof f === "string") {
+          if (typeof obj[f] === "string") {
             if (moment(obj[f] as string).isValid()) {
               return (
                 moment(obj[f] as string)
-                  .format('D MMM YYYY , h:mm:ss:A')
+                  .format("D MMM YYYY , h:mm:ss:A")
                   .toLowerCase()
                   .indexOf(search.toLowerCase()) > minusOne
               );
             }
-            return (obj[f] as string).toLowerCase().indexOf(search.toLowerCase()) > minusOne;
-          } else if (typeof obj[f] === 'number') {
+            return (
+              (obj[f] as string).toLowerCase().indexOf(search.toLowerCase()) >
+              minusOne
+            );
+          } else if (typeof obj[f] === "number") {
             return (obj[f] as number).toString().indexOf(search) > minusOne;
           }
           return false;
-        } else if (typeof f == 'object') {
+        } else if (typeof f == "object") {
           /**
            * Array is also an object
            */
           let found = false;
           const keys = Object.keys(f);
           for (let i = 0; i < keys.length; i++) {
-            if (typeof obj[keys[i]] === 'object') {
+            if (typeof obj[keys[i]] === "object") {
               found = (
                 Array.isArray(obj[keys[i]] as object)
                   ? (obj[keys[i]] as Array<string | Record<string, unknown>>)
@@ -97,7 +100,10 @@ export const searchInArrayOfObjectsandStrings = (
  * @param {FormInstance<any>} form form data
  * @returns {void} void
  */
-export const initFormFields = (data: Record<string, unknown>, form: FormInstance<any>): void => {
+export const initFormFields = (
+  data: Record<string, unknown>,
+  form: FormInstance<any>
+): void => {
   Object.keys(data).forEach((key) => {
     form.setFieldValue(key, data[key]);
   });

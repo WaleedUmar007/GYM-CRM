@@ -1,68 +1,159 @@
-import { useState } from 'react';
-
-interface Member {
-  id: number;
-  name: string;
-  email: string;
-  phone: string;
-  membershipNumber: string;
-  status: string;
-  joined: string;
-}
-
-interface Admin {
-  id: number;
-  name: string;
-  email: string;
-  phone: string;
-  status: string;
-  joined: string;
-}
-
-const mockMembers: Member[] = [
-  { id: 1, name: 'Ali Raza', email: 'ali.raza@gmail.com', phone: '0300-1234567', membershipNumber: 'KGK10025A', status: 'Active', joined: '2023-01-10' },
-  { id: 2, name: 'Sara Khan', email: 'sara.khan@gmail.com', phone: '0301-9876543', membershipNumber: 'KGK23476B', status: 'Inactive', joined: '2022-11-22' },
-  { id: 3, name: 'Bilal Ahmed', email: 'bilal.ahmed@gmail.com', phone: '0321-5555555', membershipNumber: 'KGK89732C', status: 'Active', joined: '2023-03-05' },
-];
-
-const mockAdmins: Admin[] = [
-  { id: 1, name: 'Admin One', email: 'admin1@kotlagymkhana.com', phone: '0300-0000001', status: 'Active', joined: '2022-01-01' },
-  { id: 2, name: 'Admin Two', email: 'admin2@kotlagymkhana.com', phone: '0300-0000002', status: 'Active', joined: '2022-06-15' },
-];
+import { deleteUser, getAllUsers } from "@/appRedux/actions/userAction";
+import {
+  AuthSelector,
+  PackageSelector,
+  UserSelector,
+} from "@/appRedux/reducers";
+import { useAppDispatch } from "@/appRedux/store";
+import CustomTable from "@/components/table";
+import { IUsersColumns } from "@/components/tableColumn";
+import TableToolBar from "@/components/tableToolbar";
+import { Form } from "antd";
+import { useCallback, useEffect, useRef, useState } from "react";
+import { useSelector } from "react-redux";
+import pDebounce from "p-debounce";
+import { UserRoles } from "@/types";
+import UserAddEditModal from "@/modals/users/AddAdminModal";
+import type { IUser } from "@/types/ReduxTypes/user";
+import { getPackages } from "@/appRedux/actions/packageAction";
 
 export default function SuperAdminMembersPage() {
-  const [membersFilter, setMembersFilter] = useState<'members' | 'admins'>('members');
-  const [showAddAdmin, setShowAddAdmin] = useState(false);
-  const [admins, setAdmins] = useState<Admin[]>(mockAdmins);
-  const [newAdmin, setNewAdmin] = useState({ name: '', email: '', phone: '' });
+  const [membersFilter, setMembersFilter] = useState<"members" | "admins">(
+    "members"
+  );
 
-  function handleAddAdmin(e: React.FormEvent) {
-    e.preventDefault();
-    setAdmins([
-      ...admins,
-      { id: admins.length + 1, name: newAdmin.name, email: newAdmin.email, phone: newAdmin.phone, status: 'Active', joined: new Date().toISOString().slice(0, 10) },
-    ]);
-    setShowAddAdmin(false);
-    setNewAdmin({ name: '', email: '', phone: '' });
-  }
+  const [loading, setLoading] = useState(false);
+  const [form] = Form.useForm();
+  const [search, setSearch] = useState<string>("");
+  const searchRef = useRef(search);
+  const [isFirstRender, setIsFirstRender] = useState(true);
+  const [pageSize, setPageSize] = useState(10);
+  const [currentPage, setCurrentPage] = useState(1);
+  const [deleteBtnDisabled, setDeleteBtnDisabled] = useState(true);
+  const [selectedUsers, setSelectedUsers] = useState(Array<string>);
+  const dispatch = useAppDispatch();
+  const { users, userLoading, totalDocumentsUser } = useSelector(UserSelector);
+  const { packages, packageLoading } = useSelector(PackageSelector);
+
+  const [dataSet, setDataSet] = useState<IUser>();
+  const [userEditModal, setUserEditModal] = useState<boolean>(false);
+  const [modalVisibility, setModalVisibility] = useState<boolean>(false);
+  const { user } = useSelector(AuthSelector);
+
+  const debouncedSearch = useCallback(
+    pDebounce(async (curPage: number, currentPageSize: number) => {
+      setLoading(true);
+      if (searchRef.current.length > 0) {
+        await dispatch(
+          getAllUsers({
+            page: curPage,
+            pageSize: currentPageSize,
+            searchString: searchRef.current,
+          })
+        );
+      }
+      setLoading(false);
+    }, 3),
+    []
+  );
+
+  useEffect(() => {
+    if (packages === null || packageLoading) {
+      dispatch(getPackages());
+    }
+  }, []);
+
+  useEffect(() => {
+    if (isFirstRender) {
+      setIsFirstRender(false);
+      return;
+    }
+    if (search.length === 0) {
+      setLoading(false);
+      handlePaginationChange(1, 10);
+    } else {
+      setLoading(true);
+      debouncedSearch(1, 10);
+    }
+  }, [search]);
+
+  useEffect(() => {
+    (async () => {
+      await dispatch(
+        getAllUsers({
+          page: 1,
+          pageSize: 10,
+          searchString: searchRef.current,
+        })
+      );
+    })();
+  }, []);
+
+  /**
+   * Handle pagination change
+   *
+   * @param {number} page - Current page number
+   * @param {number} currentPageSize - Page size
+   */
+  const handlePaginationChange = async (
+    page: number,
+    currentPageSize: number
+  ) => {
+    setCurrentPage(page);
+    setPageSize(currentPageSize);
+    const currentSelectedUser = form.getFieldValue("users") || [];
+    const newSelectedUsers = [...selectedUsers, ...currentSelectedUser];
+    const updatedSelectedUsers: string[] = newSelectedUsers.filter(
+      (payload, index, self) => {
+        return self.indexOf(payload) === index;
+      }
+    );
+    setSelectedUsers(updatedSelectedUsers);
+    setLoading(true);
+    await dispatch(getAllUsers({ page: page, pageSize: currentPageSize }));
+    setLoading(false);
+    form.setFieldsValue({ payloads: updatedSelectedUsers });
+  };
 
   return (
     <>
+      <UserAddEditModal
+        dataSet={dataSet}
+        edit={userEditModal}
+        setDataSet={setDataSet}
+        modalVisibility={modalVisibility}
+        setModalVisibility={setModalVisibility}
+        user={user}
+      />
       <div className="p-8 bg-[#f6faff] min-h-screen w-full">
         {/* Cards */}
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8 w-full">
           <div className="bg-white rounded-lg shadow p-6 flex items-center gap-4">
             <div className="text-3xl text-blue-600">👤</div>
             <div>
-              <div className="text-gray-500 text-sm mb-1">Total Gym Members</div>
-              <div className="text-2xl font-bold text-gray-900">{mockMembers.length}</div>
+              <div className="text-gray-500 text-sm mb-1">
+                Total Gym Members
+              </div>
+              <div className="text-2xl font-bold text-gray-900">
+                {
+                  users?.filter((user) => {
+                    return user.role === UserRoles.Member;
+                  }).length
+                }
+              </div>
             </div>
           </div>
           <div className="bg-white rounded-lg shadow p-6 flex items-center gap-4">
             <div className="text-3xl text-purple-600">🛡️</div>
             <div>
               <div className="text-gray-500 text-sm mb-1">Number of Admins</div>
-              <div className="text-2xl font-bold text-gray-900">{admins.length}</div>
+              <div className="text-2xl font-bold text-gray-900">
+                {
+                  users?.filter((user) => {
+                    return user.role === UserRoles.Admin;
+                  }).length
+                }
+              </div>
             </div>
           </div>
         </div>
@@ -70,118 +161,140 @@ export default function SuperAdminMembersPage() {
         <div className="flex gap-4 mb-4 items-center justify-between w-full">
           <div>
             <button
-              className={`px-4 py-2 rounded-lg font-medium transition-colors ${membersFilter === 'members' ? 'bg-blue-600 text-white' : 'bg-white text-gray-800 border border-gray-300'}`}
-              onClick={() => setMembersFilter('members')}
+              className={`px-4 py-2 rounded-lg font-medium transition-colors ${
+                membersFilter === "members"
+                  ? "bg-blue-600 text-white"
+                  : "bg-white text-gray-800 border border-gray-300"
+              }`}
+              onClick={() => setMembersFilter("members")}
             >
               Show Members
             </button>
             <button
-              className={`ml-2 px-4 py-2 rounded-lg font-medium transition-colors ${membersFilter === 'admins' ? 'bg-blue-600 text-white' : 'bg-white text-gray-800 border border-gray-300'}`}
-              onClick={() => setMembersFilter('admins')}
+              className={`ml-2 px-4 py-2 rounded-lg font-medium transition-colors ${
+                membersFilter === "admins"
+                  ? "bg-blue-600 text-white"
+                  : "bg-white text-gray-800 border border-gray-300"
+              }`}
+              onClick={() => setMembersFilter("admins")}
             >
               Show Admins
             </button>
           </div>
           <button
             className="bg-blue-600 hover:bg-blue-700 text-white font-semibold px-4 py-2 rounded-md transition-colors text-base shadow-sm"
-            onClick={() => setShowAddAdmin(true)}
+            onClick={() => {
+              setUserEditModal(false);
+              setModalVisibility(true);
+            }}
           >
             + Add Admin
           </button>
         </div>
         {/* Table */}
         <div className="bg-white rounded-lg shadow p-6 w-full overflow-x-auto">
-          <table className="min-w-full text-left text-black">
-            <thead>
-              <tr className="text-gray-600 text-sm">
-                <th className="py-2 px-4">Name</th>
-                <th className="py-2 px-4">Email</th>
-                <th className="py-2 px-4">Phone</th>
-                {membersFilter === 'members' && <th className="py-2 px-4">Membership Number</th>}
-                <th className="py-2 px-4">Status</th>
-                <th className="py-2 px-4">Joined</th>
-              </tr>
-            </thead>
-            <tbody>
-              {membersFilter === 'members' ? (
-                mockMembers.map((m) => (
-                  <tr key={m.id} className="border-b last:border-b-0 hover:bg-blue-50">
-                    <td className="py-2 px-4 font-medium">{m.name}</td>
-                    <td className="py-2 px-4">{m.email}</td>
-                    <td className="py-2 px-4">{m.phone}</td>
-                    <td className="py-2 px-4 font-semibold text-blue-600">{m.membershipNumber}</td>
-                    <td className="py-2 px-4">
-                      <span className={`px-2 py-1 rounded text-xs font-semibold ${m.status === 'Active' ? 'bg-green-100 text-green-700' : 'bg-gray-200 text-gray-600'}`}>{m.status}</span>
-                    </td>
-                    <td className="py-2 px-4">{m.joined}</td>
-                  </tr>
-                ))
-              ) : (
-                admins.map((m) => (
-                  <tr key={m.id} className="border-b last:border-b-0 hover:bg-blue-50">
-                    <td className="py-2 px-4 font-medium">{m.name}</td>
-                    <td className="py-2 px-4">{m.email}</td>
-                    <td className="py-2 px-4">{m.phone}</td>
-                    <td className="py-2 px-4">
-                      <span className={`px-2 py-1 rounded text-xs font-semibold ${m.status === 'Active' ? 'bg-green-100 text-green-700' : 'bg-gray-200 text-gray-600'}`}>{m.status}</span>
-                    </td>
-                    <td className="py-2 px-4">{m.joined}</td>
-                  </tr>
-                ))
-              )}
-            </tbody>
-          </table>
+          <TableToolBar
+            add={false}
+            search={true}
+            refresh={true}
+            deleteAll={true}
+            variant="filled"
+            deleteBtnDisabled={deleteBtnDisabled}
+            refreshEventListener={async () => {
+              setLoading(true);
+              form.resetFields();
+              setSearch("");
+              await dispatch(
+                getAllUsers({
+                  page: currentPage,
+                  pageSize: pageSize,
+                  searchString: search,
+                })
+              );
+              setCurrentPage(1);
+              setPageSize(10);
+              setLoading(false);
+            }}
+            deleteEventListener={async () => {
+              await dispatch(deleteUser(form.getFieldValue("users")));
+              form.resetFields();
+              setPageSize(10);
+              setDeleteBtnDisabled(true);
+            }}
+            searchFieldHandler={(e) => {
+              setSearch(e.target.value);
+            }}
+            addEventListener={() => {
+              // show modal for add user
+            }}
+          />
+          <Form
+            onChange={() => {
+              setDeleteBtnDisabled(
+                !(
+                  Array.isArray(form.getFieldValue("users")) &&
+                  form.getFieldValue("users").length > 0
+                )
+              );
+            }}
+            layout="vertical"
+            form={form}
+          >
+            <Form.Item name="users" hidden initialValue={[]} />
+            <CustomTable
+              form={{
+                formData: form,
+                key: "users",
+              }}
+              dataSource={
+                users
+                  ? membersFilter === "members"
+                    ? users
+                        .filter((user) => {
+                          return user.role === UserRoles.Member;
+                        })
+                        .map((user) => {
+                          return {
+                            key: user._id,
+                            ...user,
+                          };
+                        })
+                    : users
+                        .filter((user) => {
+                          return user.role === UserRoles.Admin;
+                        })
+                        .map((user) => {
+                          return {
+                            key: user._id,
+                            ...user,
+                          };
+                        })
+                  : []
+              }
+              search={search}
+              loading={loading || userLoading}
+              columns={IUsersColumns}
+              hasSelectedTitle={"Users"}
+              onChange={(pagination) => {
+                handlePaginationChange(
+                  pagination.current as number,
+                  pagination.pageSize as number
+                );
+              }}
+              pagination={{
+                pageSize: pageSize,
+                current: currentPage,
+                showSizeChanger: true,
+                position: ["bottomCenter"],
+                total: totalDocumentsUser || 0,
+                defaultPageSize: 10,
+                pageSizeOptions: [5, 10, 20, 50],
+              }}
+              setDeleteBtnDisabled={setDeleteBtnDisabled}
+            />
+          </Form>
         </div>
-        {/* Add Admin Modal */}
-        {showAddAdmin && (
-          <div className="fixed inset-0 bg-black bg-opacity-30 flex items-center justify-center z-50">
-            <div className="bg-white rounded-lg shadow-lg p-8 w-full max-w-md">
-              <h2 className="text-xl font-bold mb-4">Add New Admin</h2>
-              <form className="space-y-4" onSubmit={handleAddAdmin}>
-                <input
-                  type="text"
-                  placeholder="Name"
-                  className="w-full px-4 py-2 rounded-md border border-gray-300 focus:border-blue-500 focus:outline-none"
-                  value={newAdmin.name}
-                  onChange={e => setNewAdmin({ ...newAdmin, name: e.target.value })}
-                  required
-                />
-                <input
-                  type="email"
-                  placeholder="Email"
-                  className="w-full px-4 py-2 rounded-md border border-gray-300 focus:border-blue-500 focus:outline-none"
-                  value={newAdmin.email}
-                  onChange={e => setNewAdmin({ ...newAdmin, email: e.target.value })}
-                  required
-                />
-                <input
-                  type="text"
-                  placeholder="Phone"
-                  className="w-full px-4 py-2 rounded-md border border-gray-300 focus:border-blue-500 focus:outline-none"
-                  value={newAdmin.phone}
-                  onChange={e => setNewAdmin({ ...newAdmin, phone: e.target.value })}
-                  required
-                />
-                <div className="flex gap-2 justify-end">
-                  <button
-                    type="button"
-                    className="px-4 py-2 rounded bg-gray-200 text-gray-700 font-medium"
-                    onClick={() => setShowAddAdmin(false)}
-                  >
-                    Cancel
-                  </button>
-                  <button
-                    type="submit"
-                    className="px-4 py-2 rounded bg-blue-600 text-white font-semibold"
-                  >
-                    Add Admin
-                  </button>
-                </div>
-              </form>
-            </div>
-          </div>
-        )}
       </div>
     </>
   );
-} 
+}

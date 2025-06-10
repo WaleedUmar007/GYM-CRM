@@ -36,7 +36,9 @@ export default function AdminLayout() {
           <div className="mb-8">
             <div className="text-xs text-gray-300">Logged in as:</div>
             <div className="font-bold">Admin</div>
-            <div className="text-xs text-gray-400">admin</div>
+            <div className="text-xs text-gray-400">
+              {user?.first_name} {user?.last_name}
+            </div>
           </div>
           <nav className="space-y-2">
             <button
@@ -53,7 +55,7 @@ export default function AdminLayout() {
                   ? "bg-[#1a2940]"
                   : "bg-[#22304a]"
               } text-white`}
-              onClick={() => navigate("/admin")}
+              onClick={() => navigate("/admin/customers")}
             >
               <span>Customers</span>
             </button>

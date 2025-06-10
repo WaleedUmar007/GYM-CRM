@@ -6,12 +6,16 @@ import authReducer, { AuthSelector } from "./authReducer";
 import alertReducer, { AlertSelector } from "./alertReducer";
 import userReducer, { UserSelector } from "./userReducer";
 import packageReducer, { PackageSelector } from "./packageReducer";
+import dashboardReducer, { DashboardSelector } from "./dashboardReducer";
+import membershipReducer, { MembershipSelector } from "./membershipReducer";
 
 const appReducer = combineReducers({
   auth: authReducer,
   alert: alertReducer,
   user: userReducer,
   package: packageReducer,
+  dashboard: dashboardReducer,
+  membership: membershipReducer,
 });
 
 export {
@@ -19,6 +23,8 @@ export {
   AlertSelector,
   UserSelector,
   PackageSelector,
+  DashboardSelector,
+  MembershipSelector,
 };
 
 export type RootState = ReturnType<typeof appReducer>;

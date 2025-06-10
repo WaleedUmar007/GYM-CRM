@@ -1,18 +1,13 @@
-export interface IPackageAccess {
-  gymAccess: boolean;
-  poolAccess: boolean;
-  saunaAccess: boolean;
-  classesIncluded: string[];
-  personalTrainerSessions: number;
-}
+import type { IUser } from "../user";
 
 export interface IPackage {
   _id: string;
   name: string;
   description: string;
   duration: number;
-  access: IPackageAccess;
+  access: Array<string>;
   price: number;
+  assigned_to: Array<IUser | string>;
   id?: string;
 }
 

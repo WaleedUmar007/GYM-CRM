@@ -4,6 +4,8 @@ import type { UserState, IUser, IGetAllUser } from "types/ReduxTypes/user";
 const initialState: UserState = {
   users: null,
   userLoading: true,
+  admins: null,
+  adminsLoading: true,
   totalDocumentsUser: null,
 };
 
@@ -20,6 +22,13 @@ const userSlice = createSlice({
     },
     getUsersFailure: (state) => {
       state.userLoading = false;
+    },
+    getAdminsSuccess: (state, { payload }: PayloadAction<Array<IUser>>) => {
+      state.admins = payload;
+      state.adminsLoading = false;
+    },
+    getAdminsFailure: (state) => {
+      state.adminsLoading = false;
     },
     deleteUserSuccess: (state, { payload }: PayloadAction<string[]>) => {
       state.users = state.users?.filter((x) => {
@@ -55,6 +64,8 @@ const userSlice = createSlice({
 export const {
   getUsersSuccess,
   getUsersFailure,
+  getAdminsSuccess,
+  getAdminsFailure,
   deleteUserSuccess,
   deleteUserFailure,
   addEditUserSuccess,

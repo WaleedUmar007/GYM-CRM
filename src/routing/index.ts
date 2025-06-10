@@ -21,10 +21,10 @@ export const adminRoutes: Array<IRoute> = [
     authenticatedUsers: [UserRoles.SuperAdmin],
   },
   {
-    path: "users",
+    path: "customers",
     component: AdminPage,
-    label: "Users",
-    id: "users",
+    label: "Customers",
+    id: "customers",
     authenticatedUsers: [UserRoles.SuperAdmin],
   },
 ];

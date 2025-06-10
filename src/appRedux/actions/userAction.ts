@@ -6,6 +6,8 @@ import {
   addEditUserSuccess,
   addEditUserFailure,
   userReset,
+  getAdminsSuccess,
+  getAdminsFailure,
 } from "../reducers/userReducer";
 import { BackendInstance, config } from "@/config";
 import { handlerError } from "@/utils/ErrorHandler";
@@ -28,6 +30,23 @@ export const getAllUsers = createAsyncThunk(
       return true;
     } catch (err) {
       dispatch(getUsersFailure());
+      handlerError(err).forEach((error: string) => {
+        dispatch(updateAlert({ place: "tc", message: error, type: "danger" }));
+      });
+      return false;
+    }
+  }
+);
+
+export const getAllAdmins = createAsyncThunk(
+  "user/getAllAdmins",
+  async (_, { dispatch }) => {
+    try {
+      const res = await BackendInstance.get("user/get-all-admins");
+      dispatch(getAdminsSuccess(res.data.data));
+      return true;
+    } catch (err) {
+      dispatch(getAdminsFailure());
       handlerError(err).forEach((error: string) => {
         dispatch(updateAlert({ place: "tc", message: error, type: "danger" }));
       });
@@ -77,7 +96,11 @@ export const addEditUser = createAsyncThunk(
       );
       dispatch(addEditUserSuccess(res.data.data));
       dispatch(
-        updateAlert({ place: "tc", message: res.data.msg, type: "success" })
+        updateAlert({
+          place: "tc",
+          message: "User added successfully!",
+          type: "success",
+        })
       );
       return true;
     } catch (err) {

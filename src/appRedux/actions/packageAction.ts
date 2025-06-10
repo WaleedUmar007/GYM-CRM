@@ -7,10 +7,10 @@ import {
   addUpdatePackageSuccess,
   addUpdatePackageFailure,
   packageReset,
-} from "appRedux/reducers/packageReducer";
-import { BackendInstance, config } from "config";
-import type { IPackage } from "types/ReduxTypes/package";
-import { handlerError } from "utils/ErrorHandler";
+} from "@/appRedux/reducers/packageReducer";
+import { BackendInstance, config } from "@/config";
+import type { IPackage } from "@/types/ReduxTypes/package";
+import { handlerError } from "@/utils/ErrorHandler";
 import { updateAlert } from "./alertAction";
 
 /**
@@ -22,7 +22,7 @@ export const getPackages = createAsyncThunk(
   "packages/getPackages",
   async (_, { dispatch }) => {
     try {
-      const res = await BackendInstance.get("get-all-packages");
+      const res = await BackendInstance.get("package/get-all-packages");
       dispatch(getPackageSuccess(res.data.data));
       return true;
     } catch (err) {
@@ -45,12 +45,16 @@ export const deletePackage = createAsyncThunk(
   "package/deletePackage",
   async (ids: Array<string>, { dispatch }) => {
     try {
-      const res = await BackendInstance.delete("delete-packages", {
+      const res = await BackendInstance.delete("package/delete-packages", {
         data: { packageIds: ids },
       });
       dispatch(deletePackageSuccess(res.data.data));
       dispatch(
-        updateAlert({ place: "tc", message: res.data.msg, type: "success" })
+        updateAlert({
+          place: "tc",
+          message: "Package(s) deleted successfully!",
+          type: "success",
+        })
       );
       return true;
     } catch (err) {
@@ -76,18 +80,22 @@ export const addEditPackage = createAsyncThunk(
 
     try {
       const res = await BackendInstance.post(
-        "add-update-package",
+        "package/add-update-package",
         body,
         config
       );
       dispatch(
         addUpdatePackageSuccess({
-          action: res.data.action,
-          data: res.data.data,
+          action: res.data.data.action,
+          data: res.data.data.package,
         })
       );
       dispatch(
-        updateAlert({ place: "tc", message: res.data.msg, type: "success" })
+        updateAlert({
+          place: "tc",
+          message: `package ${res.data.data.action}d successfully!`,
+          type: "success",
+        })
       );
       return true;
     } catch (err) {

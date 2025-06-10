@@ -32,9 +32,12 @@ const packageSlice = createSlice({
     getPackagesFailure: (state) => {
       state.packageLoading = false;
     },
-    deletePackageSuccess: (state, { payload }: PayloadAction<IPackage>) => {
+    deletePackageSuccess: (
+      state,
+      { payload }: PayloadAction<Array<string>>
+    ) => {
       state.packages = state.packages?.filter((x) => {
-        return x._id !== payload._id;
+        return !payload.includes(x._id.toString());
       });
     },
     addUpdatePackageSuccess: (
@@ -52,7 +55,7 @@ const packageSlice = createSlice({
         so it returns array of added exploits
         */
         state.packages = state.packages
-          ? [payload.data, ...state.packages]
+          ? [...state.packages, payload.data]
           : [payload.data];
       }
     },

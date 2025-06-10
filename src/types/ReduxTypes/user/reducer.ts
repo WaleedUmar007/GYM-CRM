@@ -10,6 +10,7 @@ export interface IUser {
   role: UserRoles;
   verified: boolean;
   createdBy?: string;
+  createdAt: string;
 }
 
 export interface IGetAllUser {
