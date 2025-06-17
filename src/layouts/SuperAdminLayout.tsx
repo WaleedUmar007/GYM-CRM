@@ -3,11 +3,11 @@ import { useAppDispatch } from "@/appRedux/store";
 import { Link, Outlet, useLocation } from "react-router-dom";
 
 const navLinks = [
-  { label: 'Dashboard', icon: '🏠', to: '/superadmin' },
-  { label: 'Members', icon: '👥', to: '/superadmin/members' },
-  { label: 'Payments', icon: '💳', to: '#' },
-  { label: 'Reports', icon: '📊', to: '/superadmin/reports' },
-  { label: 'Settings', icon: '⚙️', to: '/superadmin/settings' },
+  { label: "Dashboard", icon: "🏠", to: "/superadmin" },
+  { label: "Members", icon: "👥", to: "/superadmin/members" },
+  { label: "Payments", icon: "💳", to: "#" },
+  { label: "Reports", icon: "📊", to: "/superadmin/reports" },
+  { label: "Settings", icon: "⚙️", to: "/superadmin/settings" },
 ];
 
 export default function SuperAdminLayout() {
@@ -19,7 +19,9 @@ export default function SuperAdminLayout() {
       {/* Sidebar */}
       <aside className="w-64 bg-[#111c2d] text-white flex flex-col justify-between py-6 px-4 min-h-screen">
         <div>
-          <div className="text-2xl font-bold mb-8">Kotla Gym Khana</div>
+          <div className="text-2xl font-bold mb-8">
+            {window.env.REACT_APP_BRAND_FULL_NAME}
+          </div>
           <nav className="space-y-4">
             {navLinks.map((item) => (
               <Link

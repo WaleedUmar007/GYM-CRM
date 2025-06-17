@@ -38,24 +38,13 @@ export default function LoginPage() {
         })
       );
     }
-    // if (email === "superadmin@kotlagymkhana.com" && password === "pak786") {
-    //   setError("");
-    //   onLoginSuccess?.();
-    //   navigate("/superadmin");
-    // } else if (email === "admin@kotlagymkhana.com" && password === "pak786") {
-    //   setError("");
-    //   onLoginSuccess?.();
-    //   navigate("/admin");
-    // } else {
-    //   setError("Invalid credentials");
-    // }
   }
 
   return (
     <div className="w-full min-h-screen bg-[#f6faff] flex items-center justify-center px-4">
       <div className="w-full max-w-md bg-white rounded-xl shadow-xl p-8 flex flex-col items-center">
         <h2 className="text-2xl md:text-3xl font-extrabold text-gray-900 mb-2 text-center">
-          Sign in to Kotla Gym Khana CRM
+          Sign in to {window.env.REACT_APP_BRAND_FULL_NAME} CRM
         </h2>
         <p className="text-gray-500 text-center mb-6 text-sm">
           Enter your credentials to access the dashboard

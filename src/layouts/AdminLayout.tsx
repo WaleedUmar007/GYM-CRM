@@ -32,7 +32,9 @@ export default function AdminLayout() {
       {/* Sidebar */}
       <aside className="w-64 bg-[#111c2d] text-white flex flex-col justify-between py-6 px-4 min-h-screen">
         <div>
-          <div className="text-2xl font-bold mb-8">Kotla GymKhana</div>
+          <div className="text-2xl font-bold mb-8">
+            {window.env.REACT_APP_BRAND_FULL_NAME}
+          </div>
           <div className="mb-8">
             <div className="text-xs text-gray-300">Logged in as:</div>
             <div className="font-bold">Admin</div>
