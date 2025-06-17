@@ -11,4 +11,7 @@ export default defineConfig({
       "@": path.resolve(__dirname, "src"), // optional, or set other names like 'components': path.resolve(...)
     },
   },
+  server: {
+    port: parseInt(process.env.PORT || "3000", 10),
+  }
 });

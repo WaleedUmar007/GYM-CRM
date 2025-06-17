@@ -13,13 +13,26 @@ import { BackendInstance, config } from "@/config";
 import { handlerError } from "@/utils/ErrorHandler";
 import { updateAlert } from "./alertAction";
 import { createAsyncThunk } from "@reduxjs/toolkit";
-import type { IUserAddEditFormData } from "@/types/ReduxTypes/user";
+import type {
+  IUserAddEditFormData,
+  IUserDeleteData,
+} from "@/types/ReduxTypes/user";
 import type { ISearchParams } from "@/types";
 
 export const getAllUsers = createAsyncThunk(
   "user/getUserPaginated",
-  async ({ page, pageSize, searchString }: ISearchParams, { dispatch }) => {
+  async (
+    { page, pageSize, searchString, admins }: ISearchParams,
+    { dispatch }
+  ) => {
     try {
+      if (admins) {
+        const res = await BackendInstance.post("user/get-all-users/1/10", {
+          admins: true,
+        });
+        dispatch(getAdminsSuccess(res.data.data));
+        return true;
+      }
       const res = await BackendInstance.post(
         `user/get-all-users/${page}/${pageSize}`,
         {
@@ -29,24 +42,11 @@ export const getAllUsers = createAsyncThunk(
       dispatch(getUsersSuccess(res.data.data));
       return true;
     } catch (err) {
-      dispatch(getUsersFailure());
-      handlerError(err).forEach((error: string) => {
-        dispatch(updateAlert({ place: "tc", message: error, type: "danger" }));
-      });
-      return false;
-    }
-  }
-);
-
-export const getAllAdmins = createAsyncThunk(
-  "user/getAllAdmins",
-  async (_, { dispatch }) => {
-    try {
-      const res = await BackendInstance.get("user/get-all-admins");
-      dispatch(getAdminsSuccess(res.data.data));
-      return true;
-    } catch (err) {
-      dispatch(getAdminsFailure());
+      if (admins) {
+        dispatch(getAdminsFailure());
+      } else {
+        dispatch(getUsersFailure());
+      }
       handlerError(err).forEach((error: string) => {
         dispatch(updateAlert({ place: "tc", message: error, type: "danger" }));
       });
@@ -57,13 +57,18 @@ export const getAllAdmins = createAsyncThunk(
 
 export const deleteUser = createAsyncThunk(
   "user/deleteUser",
-  async (userIds: Array<string>, { dispatch }) => {
+  async ({ userIds, mode }: IUserDeleteData, { dispatch }) => {
     try {
       const res = await BackendInstance.delete("user/delete-users", {
         ...config,
         data: { userIds: userIds },
       });
-      dispatch(deleteUserSuccess(res.data.data));
+      dispatch(
+        deleteUserSuccess({
+          userIds: res.data.data,
+          mode: mode,
+        })
+      );
       dispatch(
         updateAlert({
           place: "tc",
@@ -87,14 +92,19 @@ export const deleteUser = createAsyncThunk(
 export const addEditUser = createAsyncThunk(
   "user/addEditUser",
   async (data: IUserAddEditFormData, { dispatch }) => {
-    const body = JSON.stringify(data);
+    const body = JSON.stringify(data.data);
     try {
       const res = await BackendInstance.post(
         "user/add-update-user",
         body,
         config
       );
-      dispatch(addEditUserSuccess(res.data.data));
+      dispatch(
+        addEditUserSuccess({
+          data: res.data.data,
+          mode: data.mode,
+        })
+      );
       dispatch(
         updateAlert({
           place: "tc",

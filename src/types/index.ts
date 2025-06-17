@@ -18,10 +18,11 @@ export const AuthErrors = {
   LogOut: "Session Expired, Loging Out!",
   LoginNeeded: "Previous Session Expired, Please login Again!",
 } as const;
-export type AuthErrors = typeof AuthErrors[keyof typeof AuthErrors];
+export type AuthErrors = (typeof AuthErrors)[keyof typeof AuthErrors];
 
 export interface ISearchParams {
   page: number;
   pageSize: number;
   searchString?: string;
+  admins: boolean;
 }

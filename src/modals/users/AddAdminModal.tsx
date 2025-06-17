@@ -10,7 +10,7 @@ import { useSelector } from "react-redux";
 import type { IUserModalProps } from "./types";
 import { useAppDispatch } from "@/appRedux/store";
 import { AuthSelector, PackageSelector } from "@/appRedux/reducers";
-import type { IUserAddEditFormData } from "@/types/ReduxTypes/user";
+import type { IUser } from "@/types/ReduxTypes/user";
 import { addEditUser } from "@/appRedux/actions/userAction";
 import { UserRoles } from "@/types";
 import CustomDropdown from "@/components/dropdown";
@@ -28,7 +28,7 @@ const UserAddEditModal: React.FC<IUserModalProps> = (
 ) => {
   const { useBreakpoint } = Grid;
 
-  const { dataSet, setDataSet } = props;
+  const { dataSet, setDataSet, mode } = props;
 
   const [form] = Form.useForm();
   const { sm } = useBreakpoint();
@@ -117,18 +117,26 @@ const UserAddEditModal: React.FC<IUserModalProps> = (
   /**
    * submit handler
    *
-   * @param {IUserAddEditFormData} values data on submission
+   * @param {IUser} values data on submission
    * @returns {void} submit handler
    */
-  const handleSubmit = async (values: IUserAddEditFormData) => {
+  const handleSubmit = async (values: IUser) => {
     setLoading(true);
-    if (await dispatch(addEditUser(values)).unwrap()) {
+    if (
+      await dispatch(
+        addEditUser({
+          data: values,
+          mode: "admins",
+        })
+      ).unwrap()
+    ) {
       if (user?.role === UserRoles.Admin) {
         dispatch(
           getAllMemberships({
             page: 1,
             pageSize: 10,
             searchString: "",
+            admins: mode === "admins",
           })
         );
       }

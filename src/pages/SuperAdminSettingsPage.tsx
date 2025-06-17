@@ -1,5 +1,5 @@
 import { deletePackage, getPackages } from "@/appRedux/actions/packageAction";
-import { getAllAdmins } from "@/appRedux/actions/userAction";
+import { getAllUsers } from "@/appRedux/actions/userAction";
 import { PackageSelector, UserSelector } from "@/appRedux/reducers";
 import { useAppDispatch } from "@/appRedux/store";
 import CustomTable from "@/components/table";
@@ -31,7 +31,14 @@ export default function SuperAdminSettingsPage() {
     }
 
     if (admins === null || adminsLoading) {
-      dispatch(getAllAdmins());
+      dispatch(
+        getAllUsers({
+          page: 1,
+          pageSize: 10,
+          searchString: "",
+          admins: true,
+        })
+      );
     }
   }, []);
 

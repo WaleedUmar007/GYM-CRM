@@ -32,7 +32,8 @@ export default function SuperAdminMembersPage() {
   const [deleteBtnDisabled, setDeleteBtnDisabled] = useState(true);
   const [selectedUsers, setSelectedUsers] = useState(Array<string>);
   const dispatch = useAppDispatch();
-  const { users, userLoading, totalDocumentsUser } = useSelector(UserSelector);
+  const { users, userLoading, admins, totalDocumentsUser } =
+    useSelector(UserSelector);
   const { packages, packageLoading } = useSelector(PackageSelector);
 
   const [dataSet, setDataSet] = useState<IUser>();
@@ -49,6 +50,7 @@ export default function SuperAdminMembersPage() {
             page: curPage,
             pageSize: currentPageSize,
             searchString: searchRef.current,
+            admins: membersFilter === "admins",
           })
         );
       }
@@ -78,15 +80,23 @@ export default function SuperAdminMembersPage() {
   }, [search]);
 
   useEffect(() => {
-    (async () => {
-      await dispatch(
-        getAllUsers({
-          page: 1,
-          pageSize: 10,
-          searchString: searchRef.current,
-        })
-      );
-    })();
+    dispatch(
+      getAllUsers({
+        page: 1,
+        pageSize: 10,
+        searchString: searchRef.current,
+        admins: false,
+      })
+    );
+
+    dispatch(
+      getAllUsers({
+        page: 1,
+        pageSize: 10,
+        searchString: searchRef.current,
+        admins: true,
+      })
+    );
   }, []);
 
   /**
@@ -110,7 +120,13 @@ export default function SuperAdminMembersPage() {
     );
     setSelectedUsers(updatedSelectedUsers);
     setLoading(true);
-    await dispatch(getAllUsers({ page: page, pageSize: currentPageSize }));
+    await dispatch(
+      getAllUsers({
+        page: page,
+        pageSize: currentPageSize,
+        admins: membersFilter === "admins",
+      })
+    );
     setLoading(false);
     form.setFieldsValue({ payloads: updatedSelectedUsers });
   };
@@ -124,6 +140,7 @@ export default function SuperAdminMembersPage() {
         modalVisibility={modalVisibility}
         setModalVisibility={setModalVisibility}
         user={user}
+        mode={membersFilter}
       />
       <div className="p-8 bg-[#f6faff] min-h-screen w-full">
         {/* Cards */}
@@ -209,6 +226,7 @@ export default function SuperAdminMembersPage() {
                   page: currentPage,
                   pageSize: pageSize,
                   searchString: search,
+                  admins: membersFilter === "admins",
                 })
               );
               setCurrentPage(1);
@@ -216,7 +234,12 @@ export default function SuperAdminMembersPage() {
               setLoading(false);
             }}
             deleteEventListener={async () => {
-              await dispatch(deleteUser(form.getFieldValue("users")));
+              await dispatch(
+                deleteUser({
+                  userIds: form.getFieldValue("users"),
+                  mode: membersFilter,
+                })
+              );
               form.resetFields();
               setPageSize(10);
               setDeleteBtnDisabled(true);
@@ -249,26 +272,18 @@ export default function SuperAdminMembersPage() {
               dataSource={
                 users
                   ? membersFilter === "members"
-                    ? users
-                        .filter((user) => {
-                          return user.role === UserRoles.Member;
-                        })
-                        .map((user) => {
-                          return {
-                            key: user._id,
-                            ...user,
-                          };
-                        })
-                    : users
-                        .filter((user) => {
-                          return user.role === UserRoles.Admin;
-                        })
-                        .map((user) => {
-                          return {
-                            key: user._id,
-                            ...user,
-                          };
-                        })
+                    ? users.map((user) => {
+                        return {
+                          key: user._id,
+                          ...user,
+                        };
+                      })
+                    : admins?.map((user) => {
+                        return {
+                          key: user._id,
+                          ...user,
+                        };
+                      })
                   : []
               }
               search={search}

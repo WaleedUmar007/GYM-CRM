@@ -1,5 +1,11 @@
 import { createSlice, type PayloadAction } from "@reduxjs/toolkit";
-import type { UserState, IUser, IGetAllUser } from "types/ReduxTypes/user";
+import type {
+  UserState,
+  IUser,
+  IGetAllUser,
+  IUserDeleteData,
+  IUserAddEditFormData,
+} from "types/ReduxTypes/user";
 
 const initialState: UserState = {
   users: null,
@@ -23,33 +29,60 @@ const userSlice = createSlice({
     getUsersFailure: (state) => {
       state.userLoading = false;
     },
-    getAdminsSuccess: (state, { payload }: PayloadAction<Array<IUser>>) => {
-      state.admins = payload;
+    getAdminsSuccess: (state, { payload }: PayloadAction<IGetAllUser>) => {
+      state.admins = payload.data;
       state.adminsLoading = false;
     },
     getAdminsFailure: (state) => {
       state.adminsLoading = false;
     },
-    deleteUserSuccess: (state, { payload }: PayloadAction<string[]>) => {
-      state.users = state.users?.filter((x) => {
-        return !payload.includes(x._id);
-      });
+    deleteUserSuccess: (state, { payload }: PayloadAction<IUserDeleteData>) => {
+      if (payload.mode === "admins") {
+        state.admins =
+          state.admins?.filter((x) => {
+            return !payload.userIds.includes(x._id);
+          }) || null;
+      } else {
+        state.users =
+          state.users?.filter((x) => {
+            return !payload.userIds.includes(x._id);
+          }) || null;
+      }
     },
     deleteUserFailure: (state) => {
       return state;
     },
-    addEditUserSuccess: (state, { payload }: PayloadAction<IUser>) => {
-      if (state.users) {
-        const userExists = state.users.findIndex((user) => {
-          return user._id === payload._id;
-        });
-        if (userExists !== -1) {
-          state.users[userExists] = payload;
+    addEditUserSuccess: (
+      state,
+      { payload }: PayloadAction<IUserAddEditFormData>
+    ) => {
+      const { data, mode } = payload;
+      if (mode === "members") {
+        if (state.users) {
+          const userExists = state.users.findIndex((user) => {
+            return user._id === data._id;
+          });
+          if (userExists !== -1) {
+            state.users[userExists] = payload.data;
+          } else {
+            state.users.push(data);
+          }
         } else {
-          state.users.push(payload);
+          state.users = [data];
         }
       } else {
-        state.users = [payload];
+        if (state.admins) {
+          const userExists = state.admins.findIndex((user) => {
+            return user._id === data._id;
+          });
+          if (userExists !== -1) {
+            state.admins[userExists] = payload.data;
+          } else {
+            state.admins.push(data);
+          }
+        } else {
+          state.admins = [data];
+        }
       }
     },
     addEditUserFailure: (state) => {
