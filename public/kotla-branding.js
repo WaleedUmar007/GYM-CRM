@@ -1,6 +1,6 @@
 window.env = {
   REACT_APP_CUSTOM_ENVIRONMENT: "development",
-  REACT_APP_BACKEND_API: "http://localhost:6800",
+  REACT_APP_BACKEND_API: "http://174.138.59.174:6800",
   REACT_APP_BRAND_NAME: "Kotla Gym Khana",
   REACT_APP_BRAND_FULL_NAME: "Kotla Gym Khana",
   REACT_APP_BRAND_CONTACT_EMAIL: "contact@kotlagymkhana.com",
