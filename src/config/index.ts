@@ -1,8 +1,7 @@
 import axios from "axios";
 // eslint-disable-next-line no-process-env
-export const env = import.meta.env.VITE_CUSTOM_ENVIRONMENT;
-export const backendUrl = import.meta.env.VITE_BACKEND_API_URL as string;
-console.log(backendUrl);
+export const env = window.env.REACT_APP_CUSTOM_ENVIRONMENT;
+export const backendUrl = window.env.REACT_APP_BACKEND_API as string;
 
 export const BackendInstance = axios.create({
   baseURL: `${backendUrl}/`,
