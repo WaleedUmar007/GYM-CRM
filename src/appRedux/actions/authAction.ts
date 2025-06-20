@@ -94,7 +94,7 @@ export const logout = createAsyncThunk(
           logout action remove that.
           */
       await userLogout();
-      const csrfRequest = await BackendInstance.get("csrf");
+      const csrfRequest = await BackendInstance.get("auth/csrf");
       setCsrfToken(csrfRequest.data.data.csrfToken);
       /**
        * for microsoft logout use following href (if needed)

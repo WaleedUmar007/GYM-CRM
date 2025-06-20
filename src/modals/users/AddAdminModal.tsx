@@ -15,6 +15,8 @@ import { addEditUser } from "@/appRedux/actions/userAction";
 import { UserRoles } from "@/types";
 import CustomDropdown from "@/components/dropdown";
 import { getAllMemberships } from "@/appRedux/actions/membershipAction";
+import { initFormFields } from "@/utils";
+import { useEffect } from "react";
 
 /**
  * user add modal dialog
@@ -38,25 +40,27 @@ const UserAddEditModal: React.FC<IUserModalProps> = (
   const { user } = IAuthState;
   const { packages } = useSelector(PackageSelector);
 
-  // useEffect(() => {
-  //   /**
-  //    * Init form.
-  //    */
-  //   if (dataSet) {
-  //     if (dataSet._id) {
-  //       initFormFields(
-  //         {
-  //           ...dataSet,
-  //           firstName: dataSet.first_name,
-  //           lastName: dataSet.last_name,
-  //           verified: dataSet.verified,
-  //           organization: dataSet.organization,
-  //         },
-  //         form
-  //       );
-  //     }
-  //   }
-  // }, [dataSet]);
+  useEffect(() => {
+    /**
+     * Init form.
+     */
+    if (dataSet) {
+      if (dataSet._id) {
+        initFormFields(
+          {
+            ...dataSet,
+            firstName: dataSet.first_name,
+            lastName: dataSet.last_name,
+          },
+          form
+        );
+      }
+
+      if (dataSet.membership && dataSet.membership.package) {
+        form.setFieldValue("userPackage", dataSet.membership.package as string);
+      }
+    }
+  }, [dataSet]);
 
   const fields = [
     {
@@ -84,7 +88,7 @@ const UserAddEditModal: React.FC<IUserModalProps> = (
       name: "email",
       id: "email",
       disabled: dataSet?._id !== undefined,
-      placeHolder: "Email",
+      placeHolder: `gym@${window.env.REACT_APP_BRAND_DOMAIN.toLowerCase()}.com`,
       label: "Email",
       required: true,
       hidden: false,
@@ -94,13 +98,26 @@ const UserAddEditModal: React.FC<IUserModalProps> = (
       name: "organization",
       id: "organization",
       disabled: user?.role === UserRoles.Admin,
-      placeHolder: "Gym Location Id",
+      placeHolder: "Lahore...",
       initialValue: user?.organization,
       label: "Gym",
       hidden: false,
       required: true,
     },
   ];
+
+  if (user?.role === UserRoles.SuperAdmin) {
+    fields.push({
+      type: "password",
+      name: "password",
+      id: "password",
+      disabled: false,
+      placeHolder: "Gym@123",
+      label: "Password",
+      hidden: false,
+      required: dataSet?._id === undefined,
+    });
+  }
 
   /**
    * form clear handler onclose
@@ -126,7 +143,7 @@ const UserAddEditModal: React.FC<IUserModalProps> = (
       await dispatch(
         addEditUser({
           data: values,
-          mode: "admins",
+          mode: mode,
         })
       ).unwrap()
     ) {
@@ -136,7 +153,7 @@ const UserAddEditModal: React.FC<IUserModalProps> = (
             page: 1,
             pageSize: 10,
             searchString: "",
-            admins: mode === "admins",
+            admins: false,
           })
         );
       }
@@ -145,8 +162,6 @@ const UserAddEditModal: React.FC<IUserModalProps> = (
     setLoading(false);
   };
 
-  const breakpoints =
-    user?.role === UserRoles.Admin ? { xs: 24, sm: 24, md: 12 } : {};
   return (
     <>
       <CustomModal
@@ -165,12 +180,12 @@ const UserAddEditModal: React.FC<IUserModalProps> = (
           titlealign="center"
         >
           <Form onFinish={handleSubmit} layout="vertical" form={form}>
-            {/* <Form.Item
+            <Form.Item
               id={"id"}
               name={"id"}
               hidden
               initialValue={dataSet?._id}
-            /> */}
+            />
             <Form.Item
               id={"role"}
               name={"role"}
@@ -200,7 +215,7 @@ const UserAddEditModal: React.FC<IUserModalProps> = (
                         }
                         rules={[
                           {
-                            message: `${field.placeHolder} is required!`,
+                            message: `${field.label} is required!`,
                             required: field.required,
                           },
                         ]}
@@ -219,7 +234,7 @@ const UserAddEditModal: React.FC<IUserModalProps> = (
                     </Col>
                   );
                 })}
-              <Col {...breakpoints}>
+              <Col xs={24} sm={24} md={12}>
                 <center>
                   <Form.Item
                     label={"Account Verified"}

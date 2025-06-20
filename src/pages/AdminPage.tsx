@@ -33,9 +33,10 @@ export default function AdminPage() {
 
   const dispatch = useAppDispatch();
   const { packages, packageLoading } = useSelector(PackageSelector);
-  const { memberships, membershipLoading, totalDocumentsMemberships } = useSelector(MembershipSelector);
+  const { memberships, membershipLoading, totalDocumentsMemberships } =
+    useSelector(MembershipSelector);
 
-  const [dataSet, setDataSet] = useState<IUser>();
+  const [dataSet, setDataSet] = useState<Record<string, any>>();
   const [userEditModal, setUserEditModal] = useState<boolean>(false);
   const [modalVisibility, setModalVisibility] = useState<boolean>(false);
 
@@ -72,6 +73,7 @@ export default function AdminPage() {
           page: 1,
           pageSize: 10,
           searchString: searchRef.current,
+          admins: false,
         })
       );
     }
@@ -99,7 +101,11 @@ export default function AdminPage() {
     setSelectedUsers(updatedSelectedUsers);
     setLoading(true);
     await dispatch(
-      getAllMemberships({ page: page, pageSize: currentPageSize })
+      getAllMemberships({
+        page: page,
+        pageSize: currentPageSize,
+        admins: false,
+      })
     );
     setLoading(false);
     form.setFieldsValue({ payloads: updatedSelectedUsers });
@@ -128,6 +134,7 @@ export default function AdminPage() {
             page: curPage,
             pageSize: currentPageSize,
             searchString: searchRef.current,
+            admins: false,
           })
         );
       }
@@ -139,11 +146,12 @@ export default function AdminPage() {
   return (
     <>
       <UserAddEditModal
-        dataSet={dataSet}
+        dataSet={dataSet as IUser}
         edit={userEditModal}
         setDataSet={setDataSet}
         modalVisibility={modalVisibility}
         setModalVisibility={setModalVisibility}
+        mode={"members"}
       />
       <MembershipEditModal
         dataSet={dataSetMembership}
@@ -217,6 +225,7 @@ export default function AdminPage() {
                 page: currentPage,
                 pageSize: pageSize,
                 searchString: search,
+                admins: false,
               })
             );
             setCurrentPage(1);
@@ -249,6 +258,14 @@ export default function AdminPage() {
                   viewMembershipHistoryHandler: () => {
                     setHistoryDataSet(membership.history);
                     setHistoryModalVisibility(true);
+                  },
+                  updateUser: () => {
+                    setDataSet({
+                      ...(membership.client_id as IUser),
+                      userPackage: (membership.package as IPackage)._id,
+                    });
+                    setUserEditModal(true);
+                    setModalVisibility(true);
                   },
                   clientId: (membership.client_id as IUser)?._id,
                   membershipId: membership._id,

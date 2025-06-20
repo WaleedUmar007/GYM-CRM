@@ -140,7 +140,7 @@ export default function SuperAdminMembersPage() {
         modalVisibility={modalVisibility}
         setModalVisibility={setModalVisibility}
         user={user}
-        mode={membersFilter}
+        mode={"admins"}
       />
       <div className="p-8 bg-[#f6faff] min-h-screen w-full">
         {/* Cards */}
@@ -166,7 +166,7 @@ export default function SuperAdminMembersPage() {
               <div className="text-gray-500 text-sm mb-1">Number of Admins</div>
               <div className="text-2xl font-bold text-gray-900">
                 {
-                  users?.filter((user) => {
+                  admins?.filter((user) => {
                     return user.role === UserRoles.Admin;
                   }).length
                 }
@@ -281,6 +281,11 @@ export default function SuperAdminMembersPage() {
                     : admins?.map((user) => {
                         return {
                           key: user._id,
+                          updateUser: () => {
+                            setDataSet(user);
+                            setUserEditModal(true);
+                            setModalVisibility(true);
+                          },
                           ...user,
                         };
                       })

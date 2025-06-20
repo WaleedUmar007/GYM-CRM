@@ -1,4 +1,5 @@
 import { UserRoles } from "types";
+import type { Membership } from "../membership";
 
 export interface IUser {
   _id: string;
@@ -11,6 +12,7 @@ export interface IUser {
   verified: boolean;
   createdBy?: string;
   createdAt: string;
+  membership?: Membership;
 }
 
 export interface IGetAllUser {

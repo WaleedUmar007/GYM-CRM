@@ -2,6 +2,7 @@ window.env = {
   REACT_APP_CUSTOM_ENVIRONMENT: "development",
   REACT_APP_BACKEND_API: "https://174.138.59.174/api/v1",
   REACT_APP_BRAND_NAME: "Revive",
+  REACT_APP_BRAND_DOMAIN: "revive",
   REACT_APP_BRAND_FULL_NAME: "Revive Fitness GYM",
   REACT_APP_BRAND_CONTACT_EMAIL: "contact@revive.com",
   REACT_APP_BRAND_LOGO: "revive.png",

@@ -108,7 +108,9 @@ export const addEditUser = createAsyncThunk(
       dispatch(
         updateAlert({
           place: "tc",
-          message: "User added successfully!",
+          message: `User ${
+            (data.data as any)?.id ? "updated" : "added"
+          } successfully!`,
           type: "success",
         })
       );

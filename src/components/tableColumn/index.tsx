@@ -7,18 +7,22 @@ import type {
 import type { IPackage } from "@/types/ReduxTypes/package";
 import type { IUser } from "@/types/ReduxTypes/user";
 import {
-  DeleteOutlined,
   EditOutlined,
   FileProtectOutlined,
   HistoryOutlined,
   SaveOutlined,
 } from "@ant-design/icons";
-import { Tag, Tooltip } from "antd";
+import { Button, Popconfirm, Tag } from "antd";
 import type { ColumnsType } from "antd/es/table";
 import { Tooltip as AntdTooltip } from "antd/lib";
-import type { IMembershipColumnType, IPackagesColumnType } from "./types";
+import type {
+  IMembershipColumnType,
+  IPackagesColumnType,
+  IUsersColumnType,
+} from "./types";
+import { UserRoles } from "@/types";
 
-export const IUsersColumns: ColumnsType<IUser> = [
+export const IUsersColumns: ColumnsType<IUsersColumnType> = [
   {
     title: "First Name",
     dataIndex: "first_name",
@@ -43,21 +47,31 @@ export const IUsersColumns: ColumnsType<IUser> = [
     },
   },
   {
-    title: "Gym Admin",
-    dataIndex: "createdBy",
-    render: (createdBy: IUser) => {
-      return createdBy?.first_name
-        ? `${createdBy?.first_name} ${createdBy.last_name}`
-        : "N/A";
+    title: "Membership Status",
+    render: (user: IUser) => {
+      const status = user?.membership && user?.membership?.status;
+      return (
+        <Tag
+          color={
+            status === "active"
+              ? "green"
+              : status === "inactive"
+              ? "orange"
+              : "red"
+          }
+        >
+          <strong>{status || "N/A"}</strong>
+        </Tag>
+      );
     },
   },
   {
-    title: "Account Status",
-    dataIndex: "verified",
-    render: (verified: boolean) => {
+    title: "Payment",
+    render: (user: IUser) => {
+      const status = user?.membership && user?.membership?.paymentStatus;
       return (
-        <Tag color={verified ? "green" : "red"}>
-          <strong>{verified ? "Active" : "Not Active"}</strong>
+        <Tag color={status === "cleared" ? "green" : "red"}>
+          <strong>{status || "N/A"}</strong>
         </Tag>
       );
     },
@@ -67,6 +81,24 @@ export const IUsersColumns: ColumnsType<IUser> = [
     dataIndex: "createdAt",
     render: (createdAt: string) => {
       return new Date(createdAt).toLocaleString();
+    },
+  },
+  {
+    title: "Actions",
+    render: (user: IUsersColumnType) => {
+      return (
+        <AntdTooltip title={"Update User"}>
+          <Button
+            icon={<SaveOutlined style={{ cursor: "pointer" }} />}
+            disabled={user.role === UserRoles.Member}
+            onClick={() => {
+              if (user.updateUser) {
+                user.updateUser();
+              }
+            }}
+          />
+        </AntdTooltip>
+      );
     },
   },
 ];
@@ -167,15 +199,6 @@ export const IMembershipColumns: ColumnsType<IMembershipColumnType> = [
     render: (membership: IMembershipColumnType) => {
       return (
         <>
-          <AntdTooltip title={"Update Membership"}>
-            <SaveOutlined
-              style={{ cursor: "pointer" }}
-              onClick={() => {
-                membership.updateMembershipHandler();
-              }}
-            />
-          </AntdTooltip>
-          &nbsp;&nbsp;&nbsp;
           <AntdTooltip title={"Membership History"}>
             <HistoryOutlined
               style={{ cursor: "pointer" }}
@@ -183,6 +206,33 @@ export const IMembershipColumns: ColumnsType<IMembershipColumnType> = [
                 membership.viewMembershipHistoryHandler();
               }}
             />
+          </AntdTooltip>
+          &nbsp;&nbsp;&nbsp;
+          <AntdTooltip title={"Update User/Membership"}>
+            <Popconfirm
+              title={"Update user or membership?"}
+              placement="left"
+              onConfirm={() => {
+                if (membership.updateUser) {
+                  membership.updateUser();
+                }
+              }}
+              onCancel={() => {
+                if (membership.updateMembershipHandler) {
+                  membership.updateMembershipHandler();
+                }
+              }}
+              // onCancel={() => {}}
+              okText="User"
+              cancelText="Membership"
+            >
+              <Button
+                icon={<SaveOutlined style={{ cursor: "pointer" }} />}
+                disabled={
+                  (membership.client_id as IUser)?.role !== UserRoles.Member
+                }
+              />
+            </Popconfirm>
           </AntdTooltip>
         </>
       );
