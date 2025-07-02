@@ -247,35 +247,37 @@ const UserAddEditModal: React.FC<IUserModalProps> = (
                   : UserRoles.Member
               }
             />
-            <Row justify={"center"}>
-              <Col xs={24}>
-                <Form.Item
-                  label="User Profile"
-                  rules={[
-                    {
-                      required: !dataSet?._id,
-                      message: `User profile picture is required!`,
-                    },
-                  ]}
-                >
-                  <FileUploader
-                    draggerText={`Support for single file upload. Only .png, .jgp files can be uploaded!`}
-                    dragger={true}
-                    defaultStyle={true}
-                    multiple={false}
-                    maxCount={1}
-                    accept=".png,.jpg"
-                    beforeUpload={() => {
-                      return false;
-                    }}
-                    onChange={onProfileChange}
-                    title="Upload Agent"
-                    btnColor="primary"
-                    fileList={profileList}
-                  />
-                </Form.Item>
-              </Col>
-            </Row>
+            {user?.role === UserRoles.Admin && (
+              <Row justify={"center"}>
+                <Col xs={24}>
+                  <Form.Item
+                    label="User Profile"
+                    rules={[
+                      {
+                        required: !dataSet?._id,
+                        message: `User profile picture is required!`,
+                      },
+                    ]}
+                  >
+                    <FileUploader
+                      draggerText={`Support for single file upload. Only .png, .jgp files can be uploaded!`}
+                      dragger={true}
+                      defaultStyle={true}
+                      multiple={false}
+                      maxCount={1}
+                      accept=".png,.jpg"
+                      beforeUpload={() => {
+                        return false;
+                      }}
+                      onChange={onProfileChange}
+                      title="Upload Agent"
+                      btnColor="primary"
+                      fileList={profileList}
+                    />
+                  </Form.Item>
+                </Col>
+              </Row>
+            )}
             <Row gutter={10} justify={"center"}>
               {fields
                 .filter((field) => {
