@@ -49,6 +49,7 @@ const MembershipEditModal: React.FC<IMembershipModalProps> = (
           },
           form
         );
+        form.setFieldValue("registrationStatus", dataSet.registration_status);
         setForceRerender(forceRerender + 1);
       }
     }
@@ -72,7 +73,7 @@ const MembershipEditModal: React.FC<IMembershipModalProps> = (
       id: "membershipId",
       disabled: true,
       placeHolder: "Membership ID",
-      initialValue: dataSet?._id,
+      initialValue: dataSet?.membership_id || 'N/A',
       label: "Membership ID",
       required: false,
       hidden: false,
@@ -103,11 +104,31 @@ const MembershipEditModal: React.FC<IMembershipModalProps> = (
 
   const dropdownFields = [
     {
+      name: "registrationStatus",
+      id: "registrationStatus",
+      disabled: false,
+      placeHolder: "Cleared...",
+      label: "Registration Status",
+      required: true,
+      initialValue: dataSet?.registration_status,
+      variant: "filled",
+      options: [
+        {
+          label: "Cleared",
+          value: "cleared",
+        },
+        {
+          label: "Pending",
+          value: "pending",
+        },
+      ],
+    },
+    {
       name: "paymentType",
       id: "paymentType",
       disabled: false,
       placeHolder: "Payment Type",
-      label: "Payment Type",
+      label: "Payment Status",
       required: true,
       initialValue: dataSet?.paymentStatus,
       variant: "filled",
@@ -160,7 +181,10 @@ const MembershipEditModal: React.FC<IMembershipModalProps> = (
           label: (
             <>
               {userPackage.name}&nbsp;
-              <Tag color="purple">Rs {userPackage.price}</Tag>
+              <Tag color="purple">Monthly Fee's: Rs {userPackage.price}</Tag>
+              <Tag color="cyan">
+                Registration Fee's: {userPackage.registration_price}
+              </Tag>
             </>
           ),
           value: userPackage._id,

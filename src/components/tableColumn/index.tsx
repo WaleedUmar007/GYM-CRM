@@ -125,11 +125,11 @@ export const IMembershipColumns: ColumnsType<IMembershipColumnType> = [
   },
   {
     title: "Membership ID",
-    dataIndex: "_id",
-    render: (organization: string) => {
+    dataIndex: "membership_id",
+    render: (id: string) => {
       return (
         <Tag icon={<FileProtectOutlined />} color={"purple"}>
-          <strong>{organization || "N/A"}</strong>
+          <strong>{id || "N/A"}</strong>
         </Tag>
       );
     },
@@ -140,8 +140,12 @@ export const IMembershipColumns: ColumnsType<IMembershipColumnType> = [
       return (membership?.package as IPackage)?.name ? (
         <>
           {(membership?.package as IPackage)?.name}&nbsp;
-          <Tag color={"purple"}>
-            PKR {(membership?.package as IPackage)?.price}
+          <Tag color="purple">
+            Monthly Fee's: Rs {(membership?.package as IPackage)?.price}
+          </Tag>
+          <Tag color="cyan">
+            Registration Fee's:{" "}
+            {(membership?.package as IPackage)?.registration_price}
           </Tag>
         </>
       ) : (
@@ -177,7 +181,18 @@ export const IMembershipColumns: ColumnsType<IMembershipColumnType> = [
     },
   },
   {
-    title: "Payment",
+    title: "Registration Status",
+    dataIndex: "registration_status",
+    render: (status: PaymentType) => {
+      return (
+        <Tag color={status === "cleared" ? "green" : "red"}>
+          <strong>{status}</strong>
+        </Tag>
+      );
+    },
+  },
+  {
+    title: "Monthly Status",
     dataIndex: "paymentStatus",
     render: (status: PaymentType) => {
       return (
@@ -275,7 +290,18 @@ export const IMembershipHistoryColumn: ColumnsType<ICommonMembershipAttr[]> = [
     },
   },
   {
-    title: "Payment",
+    title: "Registration Status",
+    dataIndex: "registration_status",
+    render: (status: PaymentType) => {
+      return (
+        <Tag color={status === "cleared" ? "green" : "red"}>
+          <strong>{status}</strong>
+        </Tag>
+      );
+    },
+  },
+  {
+    title: "Month Status",
     dataIndex: "paymentStatus",
     render: (status: PaymentType) => {
       return (
@@ -297,8 +323,15 @@ export const IPackagesColumns: ColumnsType<IPackagesColumnType[]> = [
     dataIndex: "description",
   },
   {
-    title: "Price",
+    title: "Package Fee",
     dataIndex: "price",
+    render: (price: number) => {
+      return <Tag color={"purple"}>PKR {price}</Tag>;
+    },
+  },
+  {
+    title: "Registration Fee",
+    dataIndex: "registration_price",
     render: (price: number) => {
       return <Tag color={"purple"}>PKR {price}</Tag>;
     },

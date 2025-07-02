@@ -263,12 +263,13 @@ export default function AdminPage() {
                     setDataSet({
                       ...(membership.client_id as IUser),
                       userPackage: (membership.package as IPackage)._id,
+                      membership_id: membership.membership_id || "N/A",
                     });
                     setUserEditModal(true);
                     setModalVisibility(true);
                   },
                   clientId: (membership.client_id as IUser)?._id,
-                  membershipId: membership._id,
+                  membershipId: membership.membership_id || "N/A",
                   userPackage: (membership.package as IPackage)?._id,
                   ...membership,
                 };

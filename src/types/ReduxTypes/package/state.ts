@@ -7,6 +7,7 @@ export interface IPackage {
   duration: number;
   access: Array<string>;
   price: number;
+  registration_price: number;
   assigned_to: Array<IUser | string>;
   id?: string;
 }

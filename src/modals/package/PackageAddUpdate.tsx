@@ -72,6 +72,7 @@ const PackageAddEditModal: React.FC<IPackageModalProps> = (
           },
           form
         );
+        form.setFieldValue("registrationPrice", dataSet.registration_price);
         form.setFieldValue(
           "assignedTo",
           dataSet.assigned_to.map((user) => {
@@ -121,7 +122,17 @@ const PackageAddEditModal: React.FC<IPackageModalProps> = (
       id: "price",
       disabled: false,
       placeHolder: "Price",
-      label: "Price",
+      label: "Package Fee",
+      hidden: false,
+      required: true,
+    },
+    {
+      type: "number",
+      name: "registrationPrice",
+      id: "registrationPrice",
+      disabled: false,
+      placeHolder: "1000",
+      label: "Registration Fee",
       hidden: false,
       required: true,
     },

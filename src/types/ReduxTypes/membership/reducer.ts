@@ -11,12 +11,14 @@ export interface ICommonMembershipAttr {
   status: MemberStatus;
   package: string | IPackage;
   paymentStatus: PaymentType;
+  registration_status: PaymentType;
 }
 
 export type Membership = {
   // _id is mongo object Id
   _id: string;
   client_id: string | IUser;
+  membership_id: string;
   history: Array<ICommonMembershipAttr>;
   createdBy: string;
 } & ICommonMembershipAttr;

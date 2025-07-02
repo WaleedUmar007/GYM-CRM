@@ -84,6 +84,29 @@ const UserAddEditModal: React.FC<IUserModalProps> = (
       hidden: false,
     },
     {
+      type: "text",
+      name: "membership_id",
+      id: "membership_id",
+      disabled: dataSet?._id !== undefined,
+      placeHolder: "12345-6789101-1",
+      label: "Membership ID",
+      rules: [
+        { required: true, message: "Membership ID is required!" },
+        () => {
+          return {
+            validator: (_: any, value: string) => {
+              if (/^\d{5}-\d{7}-\d{1}$/.test(value)) {
+                return Promise.resolve();
+              }
+              return Promise.reject(new Error("Invalid membership ID!"));
+            },
+          };
+        },
+      ],
+      required: user?.role === UserRoles.Admin,
+      hidden: user?.role !== UserRoles.Admin,
+    },
+    {
       type: "email",
       name: "email",
       id: "email",
@@ -213,12 +236,14 @@ const UserAddEditModal: React.FC<IUserModalProps> = (
                             ? field.initialValue
                             : undefined
                         }
-                        rules={[
-                          {
-                            message: `${field.label} is required!`,
-                            required: field.required,
-                          },
-                        ]}
+                        rules={
+                          field.rules || [
+                            {
+                              message: `${field.label} is required!`,
+                              required: field.required,
+                            },
+                          ]
+                        }
                       >
                         <ScalableInput
                           id={field.id}
@@ -265,7 +290,13 @@ const UserAddEditModal: React.FC<IUserModalProps> = (
                           label: (
                             <>
                               {userPackage.name}&nbsp;
-                              <Tag color="purple">Rs {userPackage.price}</Tag>
+                              <Tag color="purple">
+                                Monthly Fee's: Rs {userPackage.price}
+                              </Tag>
+                              <Tag color="cyan">
+                                Registration Fee's:{" "}
+                                {userPackage.registration_price}
+                              </Tag>
                             </>
                           ),
                           value: userPackage._id,
