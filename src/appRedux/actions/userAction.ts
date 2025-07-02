@@ -92,12 +92,15 @@ export const deleteUser = createAsyncThunk(
 export const addEditUser = createAsyncThunk(
   "user/addEditUser",
   async (data: IUserAddEditFormData, { dispatch }) => {
-    const body = JSON.stringify(data.data);
     try {
       const res = await BackendInstance.post(
         "user/add-update-user",
-        body,
-        config
+        data.data,
+        {
+          headers: {
+            "Content-Type": "multipart/form-data",
+          },
+        }
       );
       dispatch(
         addEditUserSuccess({

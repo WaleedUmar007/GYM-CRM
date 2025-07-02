@@ -13,6 +13,7 @@ export interface IUser {
   createdBy?: string;
   createdAt: string;
   membership?: Membership;
+  avatar: string;
 }
 
 export interface IGetAllUser {

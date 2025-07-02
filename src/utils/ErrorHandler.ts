@@ -27,8 +27,6 @@ export const handlerError = (e: any) => {
         }
         return [AuthErrors.LoginNeeded];
       }
-      console.log(e.response.message);
-      console.log(e.response.data);
       return e.response.errors && Array.isArray(e.response.errors)
         ? e.response.errors.map((err: any) => {
             return err.msg;
@@ -45,8 +43,6 @@ export const handlerError = (e: any) => {
           })
         : ["Error Occured!"];
     }
-    console.log(e.message);
-    console.log(typeof e.message);
     if (Array.isArray(e.message)) {
       return e.message;
     }

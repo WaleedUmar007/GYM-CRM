@@ -1,7 +1,5 @@
-import type { IUser } from "./reducer";
-
 export interface IUserAddEditFormData {
-  data: IUser;
+  data: FormData;
   mode: "members" | "admins";
 }
 

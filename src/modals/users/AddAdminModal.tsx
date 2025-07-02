@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import { Col, Form, Grid, Row, Switch, Tag } from "antd";
+import { Col, Form, Grid, Row, Switch, Tag, type UploadFile } from "antd";
 
 import ScalableCard from "@/components/card";
 import CustomModal from "@/components/modal";
@@ -17,6 +17,8 @@ import CustomDropdown from "@/components/dropdown";
 import { getAllMemberships } from "@/appRedux/actions/membershipAction";
 import { initFormFields } from "@/utils";
 import { useEffect } from "react";
+import FileUploader from "@/components/fileUploader";
+import type { UploadChangeParam } from "antd/es/upload";
 
 /**
  * user add modal dialog
@@ -39,6 +41,7 @@ const UserAddEditModal: React.FC<IUserModalProps> = (
   const IAuthState = useSelector(AuthSelector);
   const { user } = IAuthState;
   const { packages } = useSelector(PackageSelector);
+  const [profileList, setProfileList] = useState<UploadFile[]>();
 
   useEffect(() => {
     /**
@@ -54,6 +57,7 @@ const UserAddEditModal: React.FC<IUserModalProps> = (
           },
           form
         );
+        setProfileList([]);
       }
 
       if (dataSet.membership && dataSet.membership.package) {
@@ -151,6 +155,7 @@ const UserAddEditModal: React.FC<IUserModalProps> = (
     props.setModalVisibility(false);
     form.resetFields();
     form.setFieldValue("id", undefined);
+    setProfileList([]);
     setDataSet(undefined);
   };
 
@@ -162,10 +167,20 @@ const UserAddEditModal: React.FC<IUserModalProps> = (
    */
   const handleSubmit = async (values: IUser) => {
     setLoading(true);
+    console.log(profileList);
+    const formData = new FormData();
+    Object.entries(values).forEach(([key, value]) => {
+      if (key && value && key !== "file") {
+        formData.append(key, value);
+      }
+    });
+    if (profileList && profileList.length > 0 && profileList[0].originFileObj) {
+      formData.append("file", profileList?.[0].originFileObj);
+    }
     if (
       await dispatch(
         addEditUser({
-          data: values,
+          data: formData,
           mode: mode,
         })
       ).unwrap()
@@ -180,9 +195,22 @@ const UserAddEditModal: React.FC<IUserModalProps> = (
           })
         );
       }
+      setProfileList([]);
       handleClose();
     }
     setLoading(false);
+  };
+
+  /**
+   * file uploader handler
+   *
+   * @param {UploadChangeParam<UploadFile<any>>} info - get file
+   * @returns {void} change
+   */
+  const onProfileChange = (info: UploadChangeParam<UploadFile<any>>) => {
+    if (info.fileList) {
+      setProfileList(info.fileList);
+    }
   };
 
   return (
@@ -219,6 +247,35 @@ const UserAddEditModal: React.FC<IUserModalProps> = (
                   : UserRoles.Member
               }
             />
+            <Row justify={"center"}>
+              <Col xs={24}>
+                <Form.Item
+                  label="User Profile"
+                  rules={[
+                    {
+                      required: !dataSet?._id,
+                      message: `User profile picture is required!`,
+                    },
+                  ]}
+                >
+                  <FileUploader
+                    draggerText={`Support for single file upload. Only .png, .jgp files can be uploaded!`}
+                    dragger={true}
+                    defaultStyle={true}
+                    multiple={false}
+                    maxCount={1}
+                    accept=".png,.jpg"
+                    beforeUpload={() => {
+                      return false;
+                    }}
+                    onChange={onProfileChange}
+                    title="Upload Agent"
+                    btnColor="primary"
+                    fileList={profileList}
+                  />
+                </Form.Item>
+              </Col>
+            </Row>
             <Row gutter={10} justify={"center"}>
               {fields
                 .filter((field) => {

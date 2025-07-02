@@ -26,6 +26,7 @@ const PackageAddEditModal: React.FC<IPackageModalProps> = (
   props: IPackageModalProps
 ) => {
   const { useBreakpoint } = Grid;
+
   const accessList = [
     {
       label: "Family Access (2+ members)",
@@ -73,6 +74,7 @@ const PackageAddEditModal: React.FC<IPackageModalProps> = (
           form
         );
         form.setFieldValue("registrationPrice", dataSet.registration_price);
+        form.setFieldValue("salonDiscount", dataSet.salon_discount);
         form.setFieldValue(
           "assignedTo",
           dataSet.assigned_to.map((user) => {
@@ -133,6 +135,16 @@ const PackageAddEditModal: React.FC<IPackageModalProps> = (
       disabled: false,
       placeHolder: "1000",
       label: "Registration Fee",
+      hidden: false,
+      required: true,
+    },
+    {
+      type: "number",
+      name: "salonDiscount",
+      id: "salonDiscount",
+      disabled: false,
+      placeHolder: "50",
+      label: "Salon Discount (%)",
       hidden: false,
       required: true,
     },

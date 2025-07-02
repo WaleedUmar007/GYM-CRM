@@ -11,8 +11,9 @@ import {
   FileProtectOutlined,
   HistoryOutlined,
   SaveOutlined,
+  UserOutlined,
 } from "@ant-design/icons";
-import { Button, Popconfirm, Tag } from "antd";
+import { Avatar, Button, Popconfirm, Tag } from "antd";
 import type { ColumnsType } from "antd/es/table";
 import { Tooltip as AntdTooltip } from "antd/lib";
 import type {
@@ -21,8 +22,19 @@ import type {
   IUsersColumnType,
 } from "./types";
 import { UserRoles } from "@/types";
+import { Image } from "antd";
 
 export const IUsersColumns: ColumnsType<IUsersColumnType> = [
+  {
+    title: "Profile",
+    dataIndex: "avatar",
+    render: (avatar: string) => {
+      if (!avatar) {
+        return <Avatar shape="square" size={64} icon={<UserOutlined />} />;
+      }
+      return <Image width={80} src={avatar} />;
+    },
+  },
   {
     title: "First Name",
     dataIndex: "first_name",
@@ -104,6 +116,16 @@ export const IUsersColumns: ColumnsType<IUsersColumnType> = [
 ];
 
 export const IMembershipColumns: ColumnsType<IMembershipColumnType> = [
+  {
+    title: "Profile",
+    dataIndex: "client_id",
+    render: (client_id: IUser) => {
+      if (!client_id.avatar) {
+        return <Avatar shape="square" size={64} icon={<UserOutlined />} />;
+      }
+      return <Image width={80} src={client_id.avatar} />;
+    },
+  },
   {
     title: "Name",
     render: (membership: Membership) => {
@@ -334,6 +356,13 @@ export const IPackagesColumns: ColumnsType<IPackagesColumnType[]> = [
     dataIndex: "registration_price",
     render: (price: number) => {
       return <Tag color={"purple"}>PKR {price}</Tag>;
+    },
+  },
+  {
+    title: "Salon Discount",
+    dataIndex: "salon_discount",
+    render: (discount: number) => {
+      return <Tag color={"purple"}>{discount}%</Tag>;
     },
   },
   {
