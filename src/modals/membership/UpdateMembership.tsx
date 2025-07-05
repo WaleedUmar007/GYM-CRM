@@ -50,7 +50,10 @@ const MembershipEditModal: React.FC<IMembershipModalProps> = (
           form
         );
         form.setFieldValue("registrationStatus", dataSet.registration_status);
-        form.setFieldValue("userPackage", dataSet.package);
+        form.setFieldValue(
+          "userPackage",
+          (dataSet.package as IPackage)?._id || dataSet.package
+        );
         form.setFieldValue("clientId", dataSet.client_id);
         form.setFieldValue("paymentType", dataSet.paymentStatus);
         setForceRerender(forceRerender + 1);
