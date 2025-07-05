@@ -1,4 +1,5 @@
 import { createSlice, type PayloadAction } from "@reduxjs/toolkit";
+import type { Membership } from "../../types/ReduxTypes/membership/reducer";
 import type {
   UserState,
   IUser,
@@ -57,32 +58,56 @@ const userSlice = createSlice({
       { payload }: PayloadAction<IUserAddEditFormData>
     ) => {
       const { data, mode } = payload;
+      const userToInsert = data as IUser;
+      console.log(data, mode);
       if (mode === "members") {
         if (state.users) {
           const userExists = state.users.findIndex((user) => {
-            return user._id === data._id;
+            return user._id === userToInsert._id;
           });
           if (userExists !== -1) {
-            state.users[userExists] = payload.data;
+            state.users[userExists] = userToInsert;
           } else {
-            state.users.push(data);
+            state.users.push(userToInsert);
           }
         } else {
-          state.users = [data];
+          state.users = [userToInsert];
         }
       } else {
         if (state.admins) {
           const userExists = state.admins.findIndex((user) => {
-            return user._id === data._id;
+            return user._id === userToInsert._id;
           });
+          console.log(userExists);
           if (userExists !== -1) {
-            state.admins[userExists] = payload.data;
+            state.admins[userExists] = userToInsert;
           } else {
-            state.admins.push(data);
+            state.admins.push(userToInsert);
           }
         } else {
-          state.admins = [data];
+          state.admins = [userToInsert];
         }
+      }
+    },
+    addUpdateMembershipSuccess: (
+      state,
+      { payload }: PayloadAction<Membership>
+    ) => {
+      const membershipExists = state?.users?.findIndex((user) => {
+        if (user.membership && user.membership._id === payload._id) {
+          return true;
+        }
+      });
+
+      if (
+        membershipExists !== undefined &&
+        membershipExists !== -1 &&
+        state.users
+      ) {
+        state.users[membershipExists] = {
+          ...state.users[membershipExists],
+          membership: payload,
+        };
       }
     },
     addEditUserFailure: (state) => {
@@ -103,6 +128,7 @@ export const {
   deleteUserFailure,
   addEditUserSuccess,
   addEditUserFailure,
+  addUpdateMembershipSuccess,
   userReset,
 } = userSlice.actions;
 

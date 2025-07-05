@@ -46,6 +46,9 @@ export const IUsersColumns: ColumnsType<IUsersColumnType> = [
   {
     title: "Email",
     dataIndex: "email",
+    render: (email: string) => {
+      return email || "N/A";
+    },
   },
   {
     title: "Gym",
@@ -99,17 +102,44 @@ export const IUsersColumns: ColumnsType<IUsersColumnType> = [
     title: "Actions",
     render: (user: IUsersColumnType) => {
       return (
-        <AntdTooltip title={"Update User"}>
-          <Button
-            icon={<SaveOutlined style={{ cursor: "pointer" }} />}
-            disabled={user.role === UserRoles.Member}
-            onClick={() => {
-              if (user.updateUser) {
-                user.updateUser();
-              }
-            }}
-          />
-        </AntdTooltip>
+        <>
+          {user?.role === UserRoles.Member && (
+            <>
+              <AntdTooltip title={"Membership History"}>
+                <HistoryOutlined
+                  style={{ cursor: "pointer" }}
+                  onClick={() => {
+                    if (user.viewMembershipHistoryHandler) {
+                      user.viewMembershipHistoryHandler();
+                    }
+                  }}
+                />
+              </AntdTooltip>
+              &nbsp;&nbsp;
+            </>
+          )}
+          <AntdTooltip title={"Update User/Membership"}>
+            <Popconfirm
+              title={"Update user or membership?"}
+              placement="left"
+              onConfirm={() => {
+                if (user.updateUser) {
+                  user.updateUser();
+                }
+              }}
+              onCancel={() => {
+                if (user.updateMembershipHandler) {
+                  user.updateMembershipHandler();
+                }
+              }}
+              okText="User"
+              cancelText="Membership"
+              cancelButtonProps={{ disabled: user.role === UserRoles.Admin }}
+            >
+              <Button icon={<SaveOutlined style={{ cursor: "pointer" }} />} />
+            </Popconfirm>
+          </AntdTooltip>
+        </>
       );
     },
   },

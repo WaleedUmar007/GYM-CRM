@@ -1,9 +1,11 @@
+import type { IUser } from "./reducer";
+
 export interface IUserAddEditFormData {
-  data: FormData;
+  data: FormData | IUser;
   mode: "members" | "admins";
 }
 
 export interface IUserDeleteData {
   userIds: Array<string>;
-  mode: "members" | "admins";
+  mode: "members" | "admins" | "memberships";
 }

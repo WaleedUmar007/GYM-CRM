@@ -50,6 +50,9 @@ const MembershipEditModal: React.FC<IMembershipModalProps> = (
           form
         );
         form.setFieldValue("registrationStatus", dataSet.registration_status);
+        form.setFieldValue("userPackage", dataSet.package);
+        form.setFieldValue("clientId", dataSet.client_id);
+        form.setFieldValue("paymentType", dataSet.paymentStatus);
         setForceRerender(forceRerender + 1);
       }
     }
@@ -69,11 +72,11 @@ const MembershipEditModal: React.FC<IMembershipModalProps> = (
     },
     {
       type: "text",
-      name: "membershipId",
-      id: "membershipId",
+      name: "membership_id",
+      id: "membership_id",
       disabled: true,
       placeHolder: "Membership ID",
-      initialValue: dataSet?.membership_id || 'N/A',
+      initialValue: dataSet?.membership_id || "N/A",
       label: "Membership ID",
       required: false,
       hidden: false,

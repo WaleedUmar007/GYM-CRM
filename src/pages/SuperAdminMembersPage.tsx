@@ -16,6 +16,12 @@ import { UserRoles } from "@/types";
 import UserAddEditModal from "@/modals/users/AddAdminModal";
 import type { IUser } from "@/types/ReduxTypes/user";
 import { getPackages } from "@/appRedux/actions/packageAction";
+import MembershipHistoryModal from "@/modals/membership/MembershipHistory";
+import type {
+  ICommonMembershipAttr,
+  Membership,
+} from "@/types/ReduxTypes/membership";
+import MembershipEditModal from "@/modals/membership/UpdateMembership";
 
 export default function SuperAdminMembersPage() {
   const [membersFilter, setMembersFilter] = useState<"members" | "admins">(
@@ -36,8 +42,21 @@ export default function SuperAdminMembersPage() {
     useSelector(UserSelector);
   const { packages, packageLoading } = useSelector(PackageSelector);
 
+  const [historyDataSet, setHistoryDataSet] = useState<Membership["history"]>();
+  const [historyModalVisibility, setHistoryModalVisibility] =
+    useState<boolean>(false);
+
+  const [dataSetMembership, setDataSetMembership] = useState<Membership>();
+  const [membershipEditModal, setMembershipEditModal] =
+    useState<boolean>(false);
+  const [membershipModalVisibility, setMembershipModalVisibility] =
+    useState<boolean>(false);
+
   const [dataSet, setDataSet] = useState<IUser>();
   const [userEditModal, setUserEditModal] = useState<boolean>(false);
+  const [userModalMode, setUserModalMode] = useState<"members" | "admins">(
+    "members"
+  );
   const [modalVisibility, setModalVisibility] = useState<boolean>(false);
   const { user } = useSelector(AuthSelector);
 
@@ -140,7 +159,20 @@ export default function SuperAdminMembersPage() {
         modalVisibility={modalVisibility}
         setModalVisibility={setModalVisibility}
         user={user}
-        mode={"admins"}
+        mode={userModalMode}
+      />
+      <MembershipEditModal
+        dataSet={dataSetMembership}
+        edit={membershipEditModal}
+        setDataSet={setDataSetMembership}
+        modalVisibility={membershipModalVisibility}
+        setModalVisibility={setMembershipModalVisibility}
+      />
+      <MembershipHistoryModal
+        dataSet={historyDataSet}
+        setDataSet={setHistoryDataSet}
+        modalVisibility={historyModalVisibility}
+        setModalVisibility={setHistoryModalVisibility}
       />
       <div className="p-8 bg-[#f6faff] min-h-screen w-full">
         {/* Cards */}
@@ -198,15 +230,29 @@ export default function SuperAdminMembersPage() {
               Show Admins
             </button>
           </div>
-          <button
-            className="bg-blue-600 hover:bg-blue-700 text-white font-semibold px-4 py-2 rounded-md transition-colors text-base shadow-sm"
-            onClick={() => {
-              setUserEditModal(false);
-              setModalVisibility(true);
-            }}
-          >
-            + Add Admin
-          </button>
+          <div>
+            <button
+              className="bg-blue-600 hover:bg-blue-700 text-white font-semibold px-4 py-2 rounded-md transition-colors text-base shadow-sm"
+              onClick={() => {
+                setUserModalMode("members");
+                setUserEditModal(false);
+                setModalVisibility(true);
+              }}
+            >
+              + Add Member
+            </button>
+            &nbsp;&nbsp;
+            <button
+              className="bg-blue-600 hover:bg-blue-700 text-white font-semibold px-4 py-2 rounded-md transition-colors text-base shadow-sm"
+              onClick={() => {
+                setUserModalMode("admins");
+                setUserEditModal(false);
+                setModalVisibility(true);
+              }}
+            >
+              + Add Admin
+            </button>
+          </div>
         </div>
         {/* Table */}
         <div className="bg-white rounded-lg shadow p-6 w-full overflow-x-auto">
@@ -275,6 +321,24 @@ export default function SuperAdminMembersPage() {
                     ? users.map((user) => {
                         return {
                           key: user._id,
+                          viewMembershipHistoryHandler: () => {
+                            setHistoryDataSet(
+                              user.membership?.history ||
+                                ([] as Array<ICommonMembershipAttr>)
+                            );
+                            setHistoryModalVisibility(true);
+                          },
+                          updateMembershipHandler: () => {
+                            setMembershipEditModal(true);
+                            setMembershipModalVisibility(true);
+                            setDataSetMembership(user.membership);
+                          },
+                          updateUser: () => {
+                            setUserModalMode(membersFilter);
+                            setDataSet(user);
+                            setUserEditModal(true);
+                            setModalVisibility(true);
+                          },
                           ...user,
                         };
                       })
@@ -282,6 +346,7 @@ export default function SuperAdminMembersPage() {
                         return {
                           key: user._id,
                           updateUser: () => {
+                            setUserModalMode(membersFilter);
                             setDataSet(user);
                             setUserEditModal(true);
                             setModalVisibility(true);

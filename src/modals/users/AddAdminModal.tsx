@@ -60,6 +60,10 @@ const UserAddEditModal: React.FC<IUserModalProps> = (
         setProfileList([]);
       }
 
+      if (dataSet.membership) {
+        form.setFieldValue("membership_id", dataSet.membership.membership_id);
+      }
+
       if (dataSet.membership && dataSet.membership.package) {
         form.setFieldValue("userPackage", dataSet.membership.package as string);
       }
@@ -92,14 +96,14 @@ const UserAddEditModal: React.FC<IUserModalProps> = (
       name: "membership_id",
       id: "membership_id",
       disabled: dataSet?._id !== undefined,
-      placeHolder: "12345-6789101-1",
+      placeHolder: "1234567891011",
       label: "Membership ID",
       rules: [
         { required: true, message: "Membership ID is required!" },
         () => {
           return {
             validator: (_: any, value: string) => {
-              if (/^\d{5}-\d{7}-\d{1}$/.test(value)) {
+              if (/^\d{13}$/.test(value)) {
                 return Promise.resolve();
               }
               return Promise.reject(new Error("Invalid membership ID!"));
@@ -107,8 +111,8 @@ const UserAddEditModal: React.FC<IUserModalProps> = (
           };
         },
       ],
-      required: user?.role === UserRoles.Admin,
-      hidden: user?.role !== UserRoles.Admin,
+      required: mode === "members",
+      hidden: mode === "admins",
     },
     {
       type: "email",
@@ -117,23 +121,51 @@ const UserAddEditModal: React.FC<IUserModalProps> = (
       disabled: dataSet?._id !== undefined,
       placeHolder: `gym@${window.env.REACT_APP_BRAND_DOMAIN.toLowerCase()}.com`,
       label: "Email",
-      required: true,
+      required: mode === "admins",
       hidden: false,
     },
     {
       type: "text",
       name: "organization",
       id: "organization",
-      disabled: user?.role === UserRoles.Admin,
+      disabled: mode === "members" && user?.role === UserRoles.Admin,
       placeHolder: "Lahore...",
       initialValue: user?.organization,
       label: "Gym",
       hidden: false,
       required: true,
     },
+    {
+      type: "text",
+      name: "phone_no",
+      id: "phone_no",
+      disabled: dataSet?._id !== undefined,
+      rules: [
+        {
+          required: dataSet?._id === undefined,
+          message: "Phone number is required!",
+        },
+        () => {
+          return {
+            validator: (_: any, value: string) => {
+              if (/^\d{11}$/.test(value)) {
+                return Promise.resolve();
+              }
+              return Promise.reject(
+                new Error("Please provide a valid phone number!")
+              );
+            },
+          };
+        },
+      ],
+      placeHolder: "03001234567",
+      label: "Phone Number",
+      hidden: false,
+      required: dataSet?._id === undefined,
+    },
   ];
 
-  if (user?.role === UserRoles.SuperAdmin) {
+  if (mode === "admins") {
     fields.push({
       type: "password",
       name: "password",
@@ -167,7 +199,6 @@ const UserAddEditModal: React.FC<IUserModalProps> = (
    */
   const handleSubmit = async (values: IUser) => {
     setLoading(true);
-    console.log(profileList);
     const formData = new FormData();
     Object.entries(values).forEach(([key, value]) => {
       if (key && value && key !== "file") {
@@ -185,7 +216,7 @@ const UserAddEditModal: React.FC<IUserModalProps> = (
         })
       ).unwrap()
     ) {
-      if (user?.role === UserRoles.Admin) {
+      if (mode === "members" && user?.role === UserRoles.Admin) {
         dispatch(
           getAllMemberships({
             page: 1,
@@ -212,6 +243,7 @@ const UserAddEditModal: React.FC<IUserModalProps> = (
       setProfileList(info.fileList);
     }
   };
+  console.log(mode);
 
   return (
     <>
@@ -242,12 +274,14 @@ const UserAddEditModal: React.FC<IUserModalProps> = (
               name={"role"}
               hidden
               initialValue={
-                user?.role === UserRoles.SuperAdmin
+                mode === "admins"
                   ? UserRoles.Admin
-                  : UserRoles.Member
+                  : mode === "members"
+                  ? UserRoles.Member
+                  : null
               }
             />
-            {user?.role === UserRoles.Admin && (
+            {mode === "members" && (
               <Row justify={"center"}>
                 <Col xs={24}>
                   <Form.Item
@@ -331,7 +365,7 @@ const UserAddEditModal: React.FC<IUserModalProps> = (
                   </Form.Item>
                 </center>
               </Col>
-              {user?.role === UserRoles.Admin && (
+              {mode === "members" && (
                 <Col xs={24} sm={24} md={12}>
                   <Form.Item
                     label={"User Package"}

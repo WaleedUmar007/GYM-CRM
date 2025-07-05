@@ -14,10 +14,11 @@ import { handlerError } from "@/utils/ErrorHandler";
 import { updateAlert } from "./alertAction";
 import { createAsyncThunk } from "@reduxjs/toolkit";
 import type {
+  IUser,
   IUserAddEditFormData,
   IUserDeleteData,
 } from "@/types/ReduxTypes/user";
-import type { ISearchParams } from "@/types";
+import { UserRoles, type ISearchParams } from "@/types";
 
 export const getAllUsers = createAsyncThunk(
   "user/getUserPaginated",
@@ -63,12 +64,14 @@ export const deleteUser = createAsyncThunk(
         ...config,
         data: { userIds: userIds },
       });
-      dispatch(
-        deleteUserSuccess({
-          userIds: res.data.data,
-          mode: mode,
-        })
-      );
+      if (mode !== "memberships") {
+        dispatch(
+          deleteUserSuccess({
+            userIds: res.data.data,
+            mode: mode,
+          })
+        );
+      }
       dispatch(
         updateAlert({
           place: "tc",
@@ -105,7 +108,10 @@ export const addEditUser = createAsyncThunk(
       dispatch(
         addEditUserSuccess({
           data: res.data.data,
-          mode: data.mode,
+          mode:
+            (res?.data?.data as IUser)?.role === UserRoles.Admin
+              ? "admins"
+              : "members",
         })
       );
       dispatch(

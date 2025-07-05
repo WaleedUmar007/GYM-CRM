@@ -14,4 +14,6 @@ export interface IPackagesColumnType extends IPackage {
 
 export interface IUsersColumnType extends IUser {
   updateUser?: () => void;
+  viewMembershipHistoryHandler?: () => void;
+  updateMembershipHandler: () => void;
 }
