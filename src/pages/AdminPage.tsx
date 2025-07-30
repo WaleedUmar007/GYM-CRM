@@ -297,6 +297,7 @@ export default function AdminPage() {
                       ...(membership.client_id as IUser),
                       userPackage: (membership.package as IPackage)._id,
                       membership_id: membership.membership_id || "N/A",
+                      membership: membership,
                     });
                     setUserEditModal(true);
                     setModalVisibility(true);

@@ -1,3 +1,4 @@
+import type { PaymentMode } from "@/types";
 import type { IPackage } from "../package";
 import type { IUser } from "../user";
 
@@ -12,6 +13,9 @@ export interface ICommonMembershipAttr {
   package: string | IPackage;
   paymentStatus: PaymentType;
   registration_status: PaymentType;
+  payment_mode: PaymentMode;
+  registration_discount: number;
+  membership_discount: number;
 }
 
 export type Membership = {

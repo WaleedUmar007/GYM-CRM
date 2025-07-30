@@ -59,7 +59,6 @@ const userSlice = createSlice({
     ) => {
       const { data, mode } = payload;
       const userToInsert = data as IUser;
-      console.log(data, mode);
       if (mode === "members") {
         if (state.users) {
           const userExists = state.users.findIndex((user) => {

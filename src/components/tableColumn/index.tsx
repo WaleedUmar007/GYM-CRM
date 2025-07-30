@@ -21,7 +21,7 @@ import type {
   IPackagesColumnType,
   IUsersColumnType,
 } from "./types";
-import { UserRoles } from "@/types";
+import { PaymentMode, UserRoles } from "@/types";
 import { Image } from "antd";
 
 export const IUsersColumns: ColumnsType<IUsersColumnType> = [
@@ -88,6 +88,27 @@ export const IUsersColumns: ColumnsType<IUsersColumnType> = [
         <Tag color={status === "cleared" ? "green" : "red"}>
           <strong>{status || "N/A"}</strong>
         </Tag>
+      );
+    },
+  },
+  {
+    title: "Custom Discounts",
+    render: (user: IUser) => {
+      const regDiscount =
+        user?.membership && user?.membership?.registration_discount;
+      const membershipDiscount =
+        user?.membership && user?.membership?.membership_discount;
+
+      return (
+        <>
+          <Tag color={"purple"}>
+            <strong>Reg. Discount: {regDiscount || 0}%</strong>
+          </Tag>
+          <br />
+          <Tag color={"purple"}>
+            <strong>Membership Discount: {membershipDiscount || 0}%</strong>
+          </Tag>
+        </>
       );
     },
   },
@@ -360,6 +381,32 @@ export const IMembershipHistoryColumn: ColumnsType<ICommonMembershipAttr[]> = [
         <Tag color={status === "cleared" ? "green" : "red"}>
           <strong>{status}</strong>
         </Tag>
+      );
+    },
+  },
+  {
+    title: "Payment Mode",
+    dataIndex: "payment_mode",
+    render: (mode: PaymentMode) => {
+      return mode;
+    },
+  },
+  {
+    title: "Custom Discounts",
+    render: (discounts: ICommonMembershipAttr) => {
+      const regDiscount = discounts?.registration_discount || 0;
+      const membershipDiscount = discounts?.membership_discount || 0;
+
+      return (
+        <>
+          <Tag color={"purple"}>
+            <strong>Reg. Discount: {regDiscount}%</strong>
+          </Tag>
+          <br />
+          <Tag color={"purple"}>
+            <strong>Membership Discount: {membershipDiscount}%</strong>
+          </Tag>
+        </>
       );
     },
   },

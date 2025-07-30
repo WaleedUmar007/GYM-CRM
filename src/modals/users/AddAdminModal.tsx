@@ -1,5 +1,14 @@
 import React, { useState } from "react";
-import { Col, Form, Grid, Row, Switch, Tag, type UploadFile } from "antd";
+import {
+  Col,
+  Form,
+  Grid,
+  Row,
+  Slider,
+  Switch,
+  Tag,
+  type UploadFile,
+} from "antd";
 
 import ScalableCard from "@/components/card";
 import CustomModal from "@/components/modal";
@@ -19,6 +28,7 @@ import { initFormFields } from "@/utils";
 import { useEffect } from "react";
 import FileUploader from "@/components/fileUploader";
 import type { UploadChangeParam } from "antd/es/upload";
+import type { IPackage } from "@/types/ReduxTypes/package";
 
 /**
  * user add modal dialog
@@ -42,6 +52,8 @@ const UserAddEditModal: React.FC<IUserModalProps> = (
   const { user } = IAuthState;
   const { packages } = useSelector(PackageSelector);
   const [profileList, setProfileList] = useState<UploadFile[]>();
+  const [discountRegistration, setDiscountRegistration] = useState(0);
+  const [discountMembership, setDiscountMembership] = useState(0);
 
   useEffect(() => {
     /**
@@ -61,11 +73,35 @@ const UserAddEditModal: React.FC<IUserModalProps> = (
       }
 
       if (dataSet.membership) {
-        form.setFieldValue("membership_id", dataSet.membership.membership_id);
-      }
+        const regDiscount = dataSet.membership.registration_discount;
+        const membershipDiscount = dataSet.membership.membership_discount;
 
-      if (dataSet.membership && dataSet.membership.package) {
-        form.setFieldValue("userPackage", dataSet.membership.package as string);
+        form.setFieldValue("membership_id", dataSet.membership.membership_id);
+        form.setFieldValue("payment_mode", dataSet.membership.payment_mode);
+        form.setFieldValue("registration_discount", regDiscount);
+        form.setFieldValue("membership_discount", membershipDiscount);
+        form.setFieldValue(
+          "userPackage",
+          (dataSet.membership.package as IPackage)._id ||
+            (dataSet.membership.package as string)
+        );
+
+        const userPackage = dataSet.membership.package;
+        const selectedPkg = packages?.find(
+          (pkg) => pkg._id === ((userPackage as IPackage)._id || userPackage)
+        );
+        console.log(userPackage);
+        if (selectedPkg) {
+          const discountedRegPrice =
+            selectedPkg.registration_price -
+            (selectedPkg.registration_price * regDiscount) / 100;
+
+          const discountedMonthlyPrice =
+            selectedPkg.price - (selectedPkg.price * membershipDiscount) / 100;
+
+          setDiscountRegistration(discountedRegPrice);
+          setDiscountMembership(discountedMonthlyPrice);
+        }
       }
     }
   }, [dataSet]);
@@ -243,7 +279,6 @@ const UserAddEditModal: React.FC<IUserModalProps> = (
       setProfileList(info.fileList);
     }
   };
-  console.log(mode);
 
   return (
     <>
@@ -352,10 +387,158 @@ const UserAddEditModal: React.FC<IUserModalProps> = (
                     </Col>
                   );
                 })}
+              {mode === "members" && (
+                <>
+                  <Col xs={24} sm={24} md={12}>
+                    <Form.Item
+                      label={"Payment Mode"}
+                      id={"payment_mode"}
+                      name={"payment_mode"}
+                      rules={[
+                        {
+                          message: `Payment Mode is required!`,
+                          required: true,
+                        },
+                      ]}
+                    >
+                      <CustomDropdown
+                        variant="filled"
+                        placeholder={"Select payment mode..."}
+                        options={[
+                          { label: "Cash", value: "cash" },
+                          { label: "Online", value: "online" },
+                        ]}
+                      />
+                    </Form.Item>
+                  </Col>
+                  <Col xs={24} sm={24} md={12}>
+                    <Form.Item
+                      label={"User Package"}
+                      id={"userPackage"}
+                      name={"userPackage"}
+                      rules={[
+                        {
+                          message: `User package is required!`,
+                          required: true,
+                        },
+                      ]}
+                    >
+                      <CustomDropdown
+                        variant="filled"
+                        placeholder={"Select package..."}
+                        onChange={(value) => {
+                          const selectedPkg = packages?.find(
+                            (pkg) => pkg._id === value
+                          );
+                          if (selectedPkg) {
+                            const regDiscount =
+                              form.getFieldValue("registration_discount") || 0;
+                            const membershipDiscount =
+                              form.getFieldValue("membership_discount") || 0;
+                            const discountedRegPrice =
+                              selectedPkg.registration_price -
+                              (selectedPkg.registration_price * regDiscount) /
+                                100;
+
+                            const discountedMonthlyPrice =
+                              selectedPkg.price -
+                              (selectedPkg.price * membershipDiscount) / 100;
+
+                            setDiscountRegistration(discountedRegPrice);
+                            setDiscountMembership(discountedMonthlyPrice);
+                          } else {
+                            setDiscountRegistration(0);
+                            setDiscountMembership(0);
+                          }
+                        }}
+                        options={packages?.map((userPackage) => {
+                          return {
+                            label: (
+                              <>
+                                {userPackage.name}&nbsp;
+                                <Tag color="purple">
+                                  Monthly Fee's: Rs {userPackage.price}
+                                </Tag>
+                                <Tag color="cyan">
+                                  Registration Fee's:{" "}
+                                  {userPackage.registration_price}
+                                </Tag>
+                              </>
+                            ),
+                            value: userPackage._id,
+                          };
+                        })}
+                      />
+                    </Form.Item>
+                  </Col>
+                  <Col xs={24} sm={24} md={12}>
+                    <Form.Item
+                      label={
+                        <>
+                          Registration Discount
+                          <br /> Discounted Price: Rs. {discountRegistration}
+                        </>
+                      }
+                      id={"registration_discount"}
+                      name={"registration_discount"}
+                      initialValue={0}
+                    >
+                      <Slider
+                        defaultValue={0}
+                        onChange={(value) => {
+                          const userPackage = form.getFieldValue("userPackage");
+                          if (userPackage) {
+                            const selectedPkg = packages?.find(
+                              (pkg) => pkg._id === userPackage
+                            );
+                            if (selectedPkg) {
+                              const discountedPrice =
+                                selectedPkg.registration_price -
+                                (selectedPkg.registration_price * value) / 100;
+                              setDiscountRegistration(discountedPrice);
+                            }
+                          }
+                        }}
+                      />
+                    </Form.Item>
+                  </Col>
+                  <Col xs={24} sm={24} md={12}>
+                    <Form.Item
+                      label={
+                        <>
+                          Membership Discount (Recurring)
+                          <br /> Discounted Price: Rs. {discountMembership}
+                        </>
+                      }
+                      id={"membership_discount"}
+                      name={"membership_discount"}
+                      initialValue={0}
+                    >
+                      <Slider
+                        defaultValue={0}
+                        onChange={(value) => {
+                          const userPackage = form.getFieldValue("userPackage");
+                          if (userPackage) {
+                            const selectedPkg = packages?.find(
+                              (pkg) => pkg._id === userPackage
+                            );
+                            if (selectedPkg) {
+                              const discountedPrice =
+                                selectedPkg.price -
+                                (selectedPkg.price * value) / 100;
+                              setDiscountMembership(discountedPrice);
+                            }
+                          }
+                        }}
+                      />
+                    </Form.Item>
+                  </Col>
+                </>
+              )}
               <Col xs={24} sm={24} md={12}>
                 <center>
                   <Form.Item
-                    label={"Account Verified"}
+                    label={<center>Account Verified</center>}
                     id={"verified"}
                     name={"verified"}
                     initialValue={false}
@@ -365,40 +548,6 @@ const UserAddEditModal: React.FC<IUserModalProps> = (
                   </Form.Item>
                 </center>
               </Col>
-              {mode === "members" && (
-                <Col xs={24} sm={24} md={12}>
-                  <Form.Item
-                    label={"User Package"}
-                    id={"userPackage"}
-                    name={"userPackage"}
-                    rules={[
-                      { message: `User package is required!`, required: true },
-                    ]}
-                  >
-                    <CustomDropdown
-                      variant="filled"
-                      placeholder={"Select package..."}
-                      options={packages?.map((userPackage) => {
-                        return {
-                          label: (
-                            <>
-                              {userPackage.name}&nbsp;
-                              <Tag color="purple">
-                                Monthly Fee's: Rs {userPackage.price}
-                              </Tag>
-                              <Tag color="cyan">
-                                Registration Fee's:{" "}
-                                {userPackage.registration_price}
-                              </Tag>
-                            </>
-                          ),
-                          value: userPackage._id,
-                        };
-                      })}
-                    />
-                  </Form.Item>
-                </Col>
-              )}
             </Row>
             <Row justify="center">
               <Col>
