@@ -11,6 +11,7 @@ import {
   membershipReset,
 } from "../reducers/membershipReducer";
 import type { IMembershipAddEditFormData } from "@/types/ReduxTypes/membership";
+import { addUpdateMembershipSuccess } from "../reducers/userReducer";
 
 export const getAllMemberships = createAsyncThunk(
   "memberships/getAllMemberships",
@@ -45,6 +46,7 @@ export const addEditMemberships = createAsyncThunk(
         config
       );
       dispatch(addEditMembershipSuccess(res.data.data));
+      dispatch(addUpdateMembershipSuccess(res.data.data));
       dispatch(
         updateAlert({
           place: "tc",

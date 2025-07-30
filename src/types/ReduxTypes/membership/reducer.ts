@@ -1,3 +1,4 @@
+import type { PaymentMode } from "@/types";
 import type { IPackage } from "../package";
 import type { IUser } from "../user";
 
@@ -11,12 +12,17 @@ export interface ICommonMembershipAttr {
   status: MemberStatus;
   package: string | IPackage;
   paymentStatus: PaymentType;
+  registration_status: PaymentType;
+  payment_mode: PaymentMode;
+  registration_discount: number;
+  membership_discount: number;
 }
 
 export type Membership = {
   // _id is mongo object Id
   _id: string;
   client_id: string | IUser;
+  membership_id: string;
   history: Array<ICommonMembershipAttr>;
   createdBy: string;
 } & ICommonMembershipAttr;

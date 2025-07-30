@@ -1,5 +1,14 @@
 import React, { useState } from "react";
-import { Col, Form, Grid, Row, Switch, Tag } from "antd";
+import {
+  Col,
+  Form,
+  Grid,
+  Row,
+  Slider,
+  Switch,
+  Tag,
+  type UploadFile,
+} from "antd";
 
 import ScalableCard from "@/components/card";
 import CustomModal from "@/components/modal";
@@ -15,6 +24,11 @@ import { addEditUser } from "@/appRedux/actions/userAction";
 import { UserRoles } from "@/types";
 import CustomDropdown from "@/components/dropdown";
 import { getAllMemberships } from "@/appRedux/actions/membershipAction";
+import { initFormFields } from "@/utils";
+import { useEffect } from "react";
+import FileUploader from "@/components/fileUploader";
+import type { UploadChangeParam } from "antd/es/upload";
+import type { IPackage } from "@/types/ReduxTypes/package";
 
 /**
  * user add modal dialog
@@ -37,26 +51,60 @@ const UserAddEditModal: React.FC<IUserModalProps> = (
   const IAuthState = useSelector(AuthSelector);
   const { user } = IAuthState;
   const { packages } = useSelector(PackageSelector);
+  const [profileList, setProfileList] = useState<UploadFile[]>();
+  const [discountRegistration, setDiscountRegistration] = useState(0);
+  const [discountMembership, setDiscountMembership] = useState(0);
 
-  // useEffect(() => {
-  //   /**
-  //    * Init form.
-  //    */
-  //   if (dataSet) {
-  //     if (dataSet._id) {
-  //       initFormFields(
-  //         {
-  //           ...dataSet,
-  //           firstName: dataSet.first_name,
-  //           lastName: dataSet.last_name,
-  //           verified: dataSet.verified,
-  //           organization: dataSet.organization,
-  //         },
-  //         form
-  //       );
-  //     }
-  //   }
-  // }, [dataSet]);
+  useEffect(() => {
+    /**
+     * Init form.
+     */
+    if (dataSet) {
+      if (dataSet._id) {
+        initFormFields(
+          {
+            ...dataSet,
+            firstName: dataSet.first_name,
+            lastName: dataSet.last_name,
+          },
+          form
+        );
+        setProfileList([]);
+      }
+
+      if (dataSet.membership) {
+        const regDiscount = dataSet.membership.registration_discount;
+        const membershipDiscount = dataSet.membership.membership_discount;
+
+        form.setFieldValue("membership_id", dataSet.membership.membership_id);
+        form.setFieldValue("payment_mode", dataSet.membership.payment_mode);
+        form.setFieldValue("registration_discount", regDiscount);
+        form.setFieldValue("membership_discount", membershipDiscount);
+        form.setFieldValue(
+          "userPackage",
+          (dataSet.membership.package as IPackage)._id ||
+            (dataSet.membership.package as string)
+        );
+
+        const userPackage = dataSet.membership.package;
+        const selectedPkg = packages?.find(
+          (pkg) => pkg._id === ((userPackage as IPackage)._id || userPackage)
+        );
+        console.log(userPackage);
+        if (selectedPkg) {
+          const discountedRegPrice =
+            selectedPkg.registration_price -
+            (selectedPkg.registration_price * regDiscount) / 100;
+
+          const discountedMonthlyPrice =
+            selectedPkg.price - (selectedPkg.price * membershipDiscount) / 100;
+
+          setDiscountRegistration(discountedRegPrice);
+          setDiscountMembership(discountedMonthlyPrice);
+        }
+      }
+    }
+  }, [dataSet]);
 
   const fields = [
     {
@@ -80,27 +128,91 @@ const UserAddEditModal: React.FC<IUserModalProps> = (
       hidden: false,
     },
     {
+      type: "text",
+      name: "membership_id",
+      id: "membership_id",
+      disabled: dataSet?._id !== undefined,
+      placeHolder: "1234567891011",
+      label: "Membership ID",
+      rules: [
+        { required: true, message: "Membership ID is required!" },
+        () => {
+          return {
+            validator: (_: any, value: string) => {
+              if (/^\d{13}$/.test(value)) {
+                return Promise.resolve();
+              }
+              return Promise.reject(new Error("Invalid membership ID!"));
+            },
+          };
+        },
+      ],
+      required: mode === "members",
+      hidden: mode === "admins",
+    },
+    {
       type: "email",
       name: "email",
       id: "email",
       disabled: dataSet?._id !== undefined,
-      placeHolder: "Email",
+      placeHolder: `gym@${window.env.REACT_APP_BRAND_DOMAIN.toLowerCase()}.com`,
       label: "Email",
-      required: true,
+      required: mode === "admins",
       hidden: false,
     },
     {
       type: "text",
       name: "organization",
       id: "organization",
-      disabled: user?.role === UserRoles.Admin,
-      placeHolder: "Gym Location Id",
+      disabled: mode === "members" && user?.role === UserRoles.Admin,
+      placeHolder: "Lahore...",
       initialValue: user?.organization,
       label: "Gym",
       hidden: false,
       required: true,
     },
+    {
+      type: "text",
+      name: "phone_no",
+      id: "phone_no",
+      disabled: dataSet?._id !== undefined,
+      rules: [
+        {
+          required: dataSet?._id === undefined,
+          message: "Phone number is required!",
+        },
+        () => {
+          return {
+            validator: (_: any, value: string) => {
+              if (/^\d{11}$/.test(value)) {
+                return Promise.resolve();
+              }
+              return Promise.reject(
+                new Error("Please provide a valid phone number!")
+              );
+            },
+          };
+        },
+      ],
+      placeHolder: "03001234567",
+      label: "Phone Number",
+      hidden: false,
+      required: dataSet?._id === undefined,
+    },
   ];
+
+  if (mode === "admins") {
+    fields.push({
+      type: "password",
+      name: "password",
+      id: "password",
+      disabled: false,
+      placeHolder: "Gym@123",
+      label: "Password",
+      hidden: false,
+      required: dataSet?._id === undefined,
+    });
+  }
 
   /**
    * form clear handler onclose
@@ -111,6 +223,7 @@ const UserAddEditModal: React.FC<IUserModalProps> = (
     props.setModalVisibility(false);
     form.resetFields();
     form.setFieldValue("id", undefined);
+    setProfileList([]);
     setDataSet(undefined);
   };
 
@@ -122,31 +235,51 @@ const UserAddEditModal: React.FC<IUserModalProps> = (
    */
   const handleSubmit = async (values: IUser) => {
     setLoading(true);
+    const formData = new FormData();
+    Object.entries(values).forEach(([key, value]) => {
+      if (key && value && key !== "file") {
+        formData.append(key, value);
+      }
+    });
+    if (profileList && profileList.length > 0 && profileList[0].originFileObj) {
+      formData.append("file", profileList?.[0].originFileObj);
+    }
     if (
       await dispatch(
         addEditUser({
-          data: values,
-          mode: "admins",
+          data: formData,
+          mode: mode,
         })
       ).unwrap()
     ) {
-      if (user?.role === UserRoles.Admin) {
+      if (mode === "members" && user?.role === UserRoles.Admin) {
         dispatch(
           getAllMemberships({
             page: 1,
             pageSize: 10,
             searchString: "",
-            admins: mode === "admins",
+            admins: false,
           })
         );
       }
+      setProfileList([]);
       handleClose();
     }
     setLoading(false);
   };
 
-  const breakpoints =
-    user?.role === UserRoles.Admin ? { xs: 24, sm: 24, md: 12 } : {};
+  /**
+   * file uploader handler
+   *
+   * @param {UploadChangeParam<UploadFile<any>>} info - get file
+   * @returns {void} change
+   */
+  const onProfileChange = (info: UploadChangeParam<UploadFile<any>>) => {
+    if (info.fileList) {
+      setProfileList(info.fileList);
+    }
+  };
+
   return (
     <>
       <CustomModal
@@ -165,22 +298,55 @@ const UserAddEditModal: React.FC<IUserModalProps> = (
           titlealign="center"
         >
           <Form onFinish={handleSubmit} layout="vertical" form={form}>
-            {/* <Form.Item
+            <Form.Item
               id={"id"}
               name={"id"}
               hidden
               initialValue={dataSet?._id}
-            /> */}
+            />
             <Form.Item
               id={"role"}
               name={"role"}
               hidden
               initialValue={
-                user?.role === UserRoles.SuperAdmin
+                mode === "admins"
                   ? UserRoles.Admin
-                  : UserRoles.Member
+                  : mode === "members"
+                  ? UserRoles.Member
+                  : null
               }
             />
+            {mode === "members" && (
+              <Row justify={"center"}>
+                <Col xs={24}>
+                  <Form.Item
+                    label="User Profile"
+                    rules={[
+                      {
+                        required: !dataSet?._id,
+                        message: `User profile picture is required!`,
+                      },
+                    ]}
+                  >
+                    <FileUploader
+                      draggerText={`Support for single file upload. Only .png, .jgp files can be uploaded!`}
+                      dragger={true}
+                      defaultStyle={true}
+                      multiple={false}
+                      maxCount={1}
+                      accept=".png,.jpg"
+                      beforeUpload={() => {
+                        return false;
+                      }}
+                      onChange={onProfileChange}
+                      title="Upload Agent"
+                      btnColor="primary"
+                      fileList={profileList}
+                    />
+                  </Form.Item>
+                </Col>
+              </Row>
+            )}
             <Row gutter={10} justify={"center"}>
               {fields
                 .filter((field) => {
@@ -198,12 +364,14 @@ const UserAddEditModal: React.FC<IUserModalProps> = (
                             ? field.initialValue
                             : undefined
                         }
-                        rules={[
-                          {
-                            message: `${field.placeHolder} is required!`,
-                            required: field.required,
-                          },
-                        ]}
+                        rules={
+                          field.rules || [
+                            {
+                              message: `${field.label} is required!`,
+                              required: field.required,
+                            },
+                          ]
+                        }
                       >
                         <ScalableInput
                           id={field.id}
@@ -219,10 +387,158 @@ const UserAddEditModal: React.FC<IUserModalProps> = (
                     </Col>
                   );
                 })}
-              <Col {...breakpoints}>
+              {mode === "members" && (
+                <>
+                  <Col xs={24} sm={24} md={12}>
+                    <Form.Item
+                      label={"Payment Mode"}
+                      id={"payment_mode"}
+                      name={"payment_mode"}
+                      rules={[
+                        {
+                          message: `Payment Mode is required!`,
+                          required: true,
+                        },
+                      ]}
+                    >
+                      <CustomDropdown
+                        variant="filled"
+                        placeholder={"Select payment mode..."}
+                        options={[
+                          { label: "Cash", value: "cash" },
+                          { label: "Online", value: "online" },
+                        ]}
+                      />
+                    </Form.Item>
+                  </Col>
+                  <Col xs={24} sm={24} md={12}>
+                    <Form.Item
+                      label={"User Package"}
+                      id={"userPackage"}
+                      name={"userPackage"}
+                      rules={[
+                        {
+                          message: `User package is required!`,
+                          required: true,
+                        },
+                      ]}
+                    >
+                      <CustomDropdown
+                        variant="filled"
+                        placeholder={"Select package..."}
+                        onChange={(value) => {
+                          const selectedPkg = packages?.find(
+                            (pkg) => pkg._id === value
+                          );
+                          if (selectedPkg) {
+                            const regDiscount =
+                              form.getFieldValue("registration_discount") || 0;
+                            const membershipDiscount =
+                              form.getFieldValue("membership_discount") || 0;
+                            const discountedRegPrice =
+                              selectedPkg.registration_price -
+                              (selectedPkg.registration_price * regDiscount) /
+                                100;
+
+                            const discountedMonthlyPrice =
+                              selectedPkg.price -
+                              (selectedPkg.price * membershipDiscount) / 100;
+
+                            setDiscountRegistration(discountedRegPrice);
+                            setDiscountMembership(discountedMonthlyPrice);
+                          } else {
+                            setDiscountRegistration(0);
+                            setDiscountMembership(0);
+                          }
+                        }}
+                        options={packages?.map((userPackage) => {
+                          return {
+                            label: (
+                              <>
+                                {userPackage.name}&nbsp;
+                                <Tag color="purple">
+                                  Monthly Fee's: Rs {userPackage.price}
+                                </Tag>
+                                <Tag color="cyan">
+                                  Registration Fee's:{" "}
+                                  {userPackage.registration_price}
+                                </Tag>
+                              </>
+                            ),
+                            value: userPackage._id,
+                          };
+                        })}
+                      />
+                    </Form.Item>
+                  </Col>
+                  <Col xs={24} sm={24} md={12}>
+                    <Form.Item
+                      label={
+                        <>
+                          Registration Discount
+                          <br /> Discounted Price: Rs. {discountRegistration}
+                        </>
+                      }
+                      id={"registration_discount"}
+                      name={"registration_discount"}
+                      initialValue={0}
+                    >
+                      <Slider
+                        defaultValue={0}
+                        onChange={(value) => {
+                          const userPackage = form.getFieldValue("userPackage");
+                          if (userPackage) {
+                            const selectedPkg = packages?.find(
+                              (pkg) => pkg._id === userPackage
+                            );
+                            if (selectedPkg) {
+                              const discountedPrice =
+                                selectedPkg.registration_price -
+                                (selectedPkg.registration_price * value) / 100;
+                              setDiscountRegistration(discountedPrice);
+                            }
+                          }
+                        }}
+                      />
+                    </Form.Item>
+                  </Col>
+                  <Col xs={24} sm={24} md={12}>
+                    <Form.Item
+                      label={
+                        <>
+                          Membership Discount (Recurring)
+                          <br /> Discounted Price: Rs. {discountMembership}
+                        </>
+                      }
+                      id={"membership_discount"}
+                      name={"membership_discount"}
+                      initialValue={0}
+                    >
+                      <Slider
+                        defaultValue={0}
+                        onChange={(value) => {
+                          const userPackage = form.getFieldValue("userPackage");
+                          if (userPackage) {
+                            const selectedPkg = packages?.find(
+                              (pkg) => pkg._id === userPackage
+                            );
+                            if (selectedPkg) {
+                              const discountedPrice =
+                                selectedPkg.price -
+                                (selectedPkg.price * value) / 100;
+                              setDiscountMembership(discountedPrice);
+                            }
+                          }
+                        }}
+                      />
+                    </Form.Item>
+                  </Col>
+                </>
+              )}
+              <Col xs={24} sm={24} md={12}>
                 <center>
                   <Form.Item
-                    label={"Account Verified"}
+                    label={<center>Account Verified</center>}
                     id={"verified"}
                     name={"verified"}
                     initialValue={false}
@@ -232,34 +548,6 @@ const UserAddEditModal: React.FC<IUserModalProps> = (
                   </Form.Item>
                 </center>
               </Col>
-              {user?.role === UserRoles.Admin && (
-                <Col xs={24} sm={24} md={12}>
-                  <Form.Item
-                    label={"User Package"}
-                    id={"userPackage"}
-                    name={"userPackage"}
-                    rules={[
-                      { message: `User package is required!`, required: true },
-                    ]}
-                  >
-                    <CustomDropdown
-                      variant="filled"
-                      placeholder={"Select package..."}
-                      options={packages?.map((userPackage) => {
-                        return {
-                          label: (
-                            <>
-                              {userPackage.name}&nbsp;
-                              <Tag color="purple">Rs {userPackage.price}</Tag>
-                            </>
-                          ),
-                          value: userPackage._id,
-                        };
-                      })}
-                    />
-                  </Form.Item>
-                </Col>
-              )}
             </Row>
             <Row justify="center">
               <Col>

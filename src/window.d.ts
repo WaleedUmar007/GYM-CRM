@@ -6,6 +6,7 @@ declare global {
       REACT_APP_CUSTOM_ENVIRONMENT: string;
       REACT_APP_BACKEND_API: string;
       REACT_APP_BRAND_NAME: string;
+      REACT_APP_BRAND_DOMAIN: string;
       REACT_APP_BRAND_FULL_NAME: string;
       REACT_APP_BRAND_CONTACT_EMAIL: string;
       REACT_APP_BRAND_LOGO: string;

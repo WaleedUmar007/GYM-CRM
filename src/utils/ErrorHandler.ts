@@ -33,6 +33,8 @@ export const handlerError = (e: any) => {
           })
         : e.response.message
         ? [e.response.message]
+        : e.response.data && e.response.data.message && Array.isArray(e.response.data.message)
+        ? e.response.data.message
         : e.response.data && e.response.data.message
         ? [e.response.data.message]
         : e.response.data.errors && Array.isArray(e.response.data.errors)
@@ -40,6 +42,9 @@ export const handlerError = (e: any) => {
             return err.msg;
           })
         : ["Error Occured!"];
+    }
+    if (Array.isArray(e.message)) {
+      return e.message;
     }
     return [e.message];
   } catch (err: any) {

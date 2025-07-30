@@ -7,18 +7,34 @@ import type {
 import type { IPackage } from "@/types/ReduxTypes/package";
 import type { IUser } from "@/types/ReduxTypes/user";
 import {
-  DeleteOutlined,
   EditOutlined,
   FileProtectOutlined,
   HistoryOutlined,
   SaveOutlined,
+  UserOutlined,
 } from "@ant-design/icons";
-import { Tag, Tooltip } from "antd";
+import { Avatar, Button, Popconfirm, Tag } from "antd";
 import type { ColumnsType } from "antd/es/table";
 import { Tooltip as AntdTooltip } from "antd/lib";
-import type { IMembershipColumnType, IPackagesColumnType } from "./types";
+import type {
+  IMembershipColumnType,
+  IPackagesColumnType,
+  IUsersColumnType,
+} from "./types";
+import { PaymentMode, UserRoles } from "@/types";
+import { Image } from "antd";
 
-export const IUsersColumns: ColumnsType<IUser> = [
+export const IUsersColumns: ColumnsType<IUsersColumnType> = [
+  {
+    title: "Profile",
+    dataIndex: "avatar",
+    render: (avatar: string) => {
+      if (!avatar) {
+        return <Avatar shape="square" size={64} icon={<UserOutlined />} />;
+      }
+      return <Image width={80} src={avatar} />;
+    },
+  },
   {
     title: "First Name",
     dataIndex: "first_name",
@@ -30,6 +46,9 @@ export const IUsersColumns: ColumnsType<IUser> = [
   {
     title: "Email",
     dataIndex: "email",
+    render: (email: string) => {
+      return email || "N/A";
+    },
   },
   {
     title: "Gym",
@@ -43,22 +62,53 @@ export const IUsersColumns: ColumnsType<IUser> = [
     },
   },
   {
-    title: "Gym Admin",
-    dataIndex: "createdBy",
-    render: (createdBy: IUser) => {
-      return createdBy?.first_name
-        ? `${createdBy?.first_name} ${createdBy.last_name}`
-        : "N/A";
+    title: "Membership Status",
+    render: (user: IUser) => {
+      const status = user?.membership && user?.membership?.status;
+      return (
+        <Tag
+          color={
+            status === "active"
+              ? "green"
+              : status === "inactive"
+              ? "orange"
+              : "red"
+          }
+        >
+          <strong>{status || "N/A"}</strong>
+        </Tag>
+      );
     },
   },
   {
-    title: "Account Status",
-    dataIndex: "verified",
-    render: (verified: boolean) => {
+    title: "Payment",
+    render: (user: IUser) => {
+      const status = user?.membership && user?.membership?.paymentStatus;
       return (
-        <Tag color={verified ? "green" : "red"}>
-          <strong>{verified ? "Active" : "Not Active"}</strong>
+        <Tag color={status === "cleared" ? "green" : "red"}>
+          <strong>{status || "N/A"}</strong>
         </Tag>
+      );
+    },
+  },
+  {
+    title: "Custom Discounts",
+    render: (user: IUser) => {
+      const regDiscount =
+        user?.membership && user?.membership?.registration_discount;
+      const membershipDiscount =
+        user?.membership && user?.membership?.membership_discount;
+
+      return (
+        <>
+          <Tag color={"purple"}>
+            <strong>Reg. Discount: {regDiscount || 0}%</strong>
+          </Tag>
+          <br />
+          <Tag color={"purple"}>
+            <strong>Membership Discount: {membershipDiscount || 0}%</strong>
+          </Tag>
+        </>
       );
     },
   },
@@ -69,9 +119,64 @@ export const IUsersColumns: ColumnsType<IUser> = [
       return new Date(createdAt).toLocaleString();
     },
   },
+  {
+    title: "Actions",
+    render: (user: IUsersColumnType) => {
+      return (
+        <>
+          {user?.role === UserRoles.Member && (
+            <>
+              <AntdTooltip title={"Membership History"}>
+                <HistoryOutlined
+                  style={{ cursor: "pointer" }}
+                  onClick={() => {
+                    if (user.viewMembershipHistoryHandler) {
+                      user.viewMembershipHistoryHandler();
+                    }
+                  }}
+                />
+              </AntdTooltip>
+              &nbsp;&nbsp;
+            </>
+          )}
+          <AntdTooltip title={"Update User/Membership"}>
+            <Popconfirm
+              title={"Update user or membership?"}
+              placement="left"
+              onConfirm={() => {
+                if (user.updateUser) {
+                  user.updateUser();
+                }
+              }}
+              onCancel={() => {
+                if (user.updateMembershipHandler) {
+                  user.updateMembershipHandler();
+                }
+              }}
+              okText="User"
+              cancelText="Membership"
+              cancelButtonProps={{ disabled: user.role === UserRoles.Admin }}
+            >
+              <Button icon={<SaveOutlined style={{ cursor: "pointer" }} />} />
+            </Popconfirm>
+          </AntdTooltip>
+        </>
+      );
+    },
+  },
 ];
 
 export const IMembershipColumns: ColumnsType<IMembershipColumnType> = [
+  {
+    title: "Profile",
+    dataIndex: "client_id",
+    render: (client_id: IUser) => {
+      if (!client_id.avatar) {
+        return <Avatar shape="square" size={64} icon={<UserOutlined />} />;
+      }
+      return <Image width={80} src={client_id.avatar} />;
+    },
+  },
   {
     title: "Name",
     render: (membership: Membership) => {
@@ -93,11 +198,11 @@ export const IMembershipColumns: ColumnsType<IMembershipColumnType> = [
   },
   {
     title: "Membership ID",
-    dataIndex: "_id",
-    render: (organization: string) => {
+    dataIndex: "membership_id",
+    render: (id: string) => {
       return (
         <Tag icon={<FileProtectOutlined />} color={"purple"}>
-          <strong>{organization || "N/A"}</strong>
+          <strong>{id || "N/A"}</strong>
         </Tag>
       );
     },
@@ -108,8 +213,12 @@ export const IMembershipColumns: ColumnsType<IMembershipColumnType> = [
       return (membership?.package as IPackage)?.name ? (
         <>
           {(membership?.package as IPackage)?.name}&nbsp;
-          <Tag color={"purple"}>
-            PKR {(membership?.package as IPackage)?.price}
+          <Tag color="purple">
+            Monthly Fee's: Rs {(membership?.package as IPackage)?.price}
+          </Tag>
+          <Tag color="cyan">
+            Registration Fee's:{" "}
+            {(membership?.package as IPackage)?.registration_price}
           </Tag>
         </>
       ) : (
@@ -145,7 +254,18 @@ export const IMembershipColumns: ColumnsType<IMembershipColumnType> = [
     },
   },
   {
-    title: "Payment",
+    title: "Registration Status",
+    dataIndex: "registration_status",
+    render: (status: PaymentType) => {
+      return (
+        <Tag color={status === "cleared" ? "green" : "red"}>
+          <strong>{status}</strong>
+        </Tag>
+      );
+    },
+  },
+  {
+    title: "Monthly Status",
     dataIndex: "paymentStatus",
     render: (status: PaymentType) => {
       return (
@@ -167,15 +287,6 @@ export const IMembershipColumns: ColumnsType<IMembershipColumnType> = [
     render: (membership: IMembershipColumnType) => {
       return (
         <>
-          <AntdTooltip title={"Update Membership"}>
-            <SaveOutlined
-              style={{ cursor: "pointer" }}
-              onClick={() => {
-                membership.updateMembershipHandler();
-              }}
-            />
-          </AntdTooltip>
-          &nbsp;&nbsp;&nbsp;
           <AntdTooltip title={"Membership History"}>
             <HistoryOutlined
               style={{ cursor: "pointer" }}
@@ -183,6 +294,33 @@ export const IMembershipColumns: ColumnsType<IMembershipColumnType> = [
                 membership.viewMembershipHistoryHandler();
               }}
             />
+          </AntdTooltip>
+          &nbsp;&nbsp;&nbsp;
+          <AntdTooltip title={"Update User/Membership"}>
+            <Popconfirm
+              title={"Update user or membership?"}
+              placement="left"
+              onConfirm={() => {
+                if (membership.updateUser) {
+                  membership.updateUser();
+                }
+              }}
+              onCancel={() => {
+                if (membership.updateMembershipHandler) {
+                  membership.updateMembershipHandler();
+                }
+              }}
+              // onCancel={() => {}}
+              okText="User"
+              cancelText="Membership"
+            >
+              <Button
+                icon={<SaveOutlined style={{ cursor: "pointer" }} />}
+                disabled={
+                  (membership.client_id as IUser)?.role !== UserRoles.Member
+                }
+              />
+            </Popconfirm>
           </AntdTooltip>
         </>
       );
@@ -225,13 +363,50 @@ export const IMembershipHistoryColumn: ColumnsType<ICommonMembershipAttr[]> = [
     },
   },
   {
-    title: "Payment",
+    title: "Registration Status",
+    dataIndex: "registration_status",
+    render: (status: PaymentType) => {
+      return (
+        <Tag color={status === "cleared" ? "green" : "red"}>
+          <strong>{status}</strong>
+        </Tag>
+      );
+    },
+  },
+  {
+    title: "Month Status",
     dataIndex: "paymentStatus",
     render: (status: PaymentType) => {
       return (
         <Tag color={status === "cleared" ? "green" : "red"}>
           <strong>{status}</strong>
         </Tag>
+      );
+    },
+  },
+  {
+    title: "Payment Mode",
+    dataIndex: "payment_mode",
+    render: (mode: PaymentMode) => {
+      return mode;
+    },
+  },
+  {
+    title: "Custom Discounts",
+    render: (discounts: ICommonMembershipAttr) => {
+      const regDiscount = discounts?.registration_discount || 0;
+      const membershipDiscount = discounts?.membership_discount || 0;
+
+      return (
+        <>
+          <Tag color={"purple"}>
+            <strong>Reg. Discount: {regDiscount}%</strong>
+          </Tag>
+          <br />
+          <Tag color={"purple"}>
+            <strong>Membership Discount: {membershipDiscount}%</strong>
+          </Tag>
+        </>
       );
     },
   },
@@ -247,10 +422,24 @@ export const IPackagesColumns: ColumnsType<IPackagesColumnType[]> = [
     dataIndex: "description",
   },
   {
-    title: "Price",
+    title: "Package Fee",
     dataIndex: "price",
     render: (price: number) => {
       return <Tag color={"purple"}>PKR {price}</Tag>;
+    },
+  },
+  {
+    title: "Registration Fee",
+    dataIndex: "registration_price",
+    render: (price: number) => {
+      return <Tag color={"purple"}>PKR {price}</Tag>;
+    },
+  },
+  {
+    title: "Salon Discount",
+    dataIndex: "salon_discount",
+    render: (discount: number) => {
+      return <Tag color={"purple"}>{discount}%</Tag>;
     },
   },
   {

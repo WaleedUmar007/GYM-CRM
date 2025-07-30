@@ -14,6 +14,13 @@ export const Environment = {
   Testing: "testing" as Environment,
 };
 
+export type PaymentMode = 'online' | 'cash' | 'n/a';
+export const PaymentMode = {
+  Online: 'online' as PaymentMode,
+  Cash: 'cash' as PaymentMode,
+  NA: 'n/a' as PaymentMode,
+};
+
 export const AuthErrors = {
   LogOut: "Session Expired, Loging Out!",
   LoginNeeded: "Previous Session Expired, Please login Again!",
