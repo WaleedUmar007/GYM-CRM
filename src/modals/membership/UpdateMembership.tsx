@@ -241,6 +241,26 @@ const MembershipEditModal: React.FC<IMembershipModalProps> = (
         }
       },
     },
+    {
+      name: "payment_mode",
+      id: "payment_mode",
+      disabled: false,
+      placeholder: "Cash...",
+      label: "Payment Mode",
+      required: true,
+      initialValue: dataSet?.payment_mode,
+      variant: "filled",
+      options: [
+        {
+          label: "Online",
+          value: "online",
+        },
+        {
+          label: "Cash",
+          value: "cash",
+        }
+      ],
+    },
   ];
 
   /**
