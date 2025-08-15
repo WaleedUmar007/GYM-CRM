@@ -1,14 +1,5 @@
 import React, { useState } from "react";
-import {
-  Col,
-  Form,
-  Grid,
-  Row,
-  Slider,
-  Switch,
-  Tag,
-  type UploadFile,
-} from "antd";
+import { Col, Form, Grid, Row, Switch, Tag, type UploadFile } from "antd";
 
 import ScalableCard from "@/components/card";
 import CustomModal from "@/components/modal";
@@ -52,8 +43,6 @@ const UserAddEditModal: React.FC<IUserModalProps> = (
   const { user } = IAuthState;
   const { packages } = useSelector(PackageSelector);
   const [profileList, setProfileList] = useState<UploadFile[]>();
-  const [discountRegistration, setDiscountRegistration] = useState(0);
-  const [discountMembership, setDiscountMembership] = useState(0);
 
   useEffect(() => {
     /**
@@ -85,23 +74,6 @@ const UserAddEditModal: React.FC<IUserModalProps> = (
           (dataSet.membership.package as IPackage)._id ||
             (dataSet.membership.package as string)
         );
-
-        const userPackage = dataSet.membership.package;
-        const selectedPkg = packages?.find(
-          (pkg) => pkg._id === ((userPackage as IPackage)._id || userPackage)
-        );
-        console.log(userPackage);
-        if (selectedPkg) {
-          const discountedRegPrice =
-            selectedPkg.registration_price -
-            (selectedPkg.registration_price * regDiscount) / 100;
-
-          const discountedMonthlyPrice =
-            selectedPkg.price - (selectedPkg.price * membershipDiscount) / 100;
-
-          setDiscountRegistration(discountedRegPrice);
-          setDiscountMembership(discountedMonthlyPrice);
-        }
       }
     }
   }, [dataSet]);
@@ -426,31 +398,6 @@ const UserAddEditModal: React.FC<IUserModalProps> = (
                       <CustomDropdown
                         variant="filled"
                         placeholder={"Select package..."}
-                        onChange={(value) => {
-                          const selectedPkg = packages?.find(
-                            (pkg) => pkg._id === value
-                          );
-                          if (selectedPkg) {
-                            const regDiscount =
-                              form.getFieldValue("registration_discount") || 0;
-                            const membershipDiscount =
-                              form.getFieldValue("membership_discount") || 0;
-                            const discountedRegPrice =
-                              selectedPkg.registration_price -
-                              (selectedPkg.registration_price * regDiscount) /
-                                100;
-
-                            const discountedMonthlyPrice =
-                              selectedPkg.price -
-                              (selectedPkg.price * membershipDiscount) / 100;
-
-                            setDiscountRegistration(discountedRegPrice);
-                            setDiscountMembership(discountedMonthlyPrice);
-                          } else {
-                            setDiscountRegistration(0);
-                            setDiscountMembership(0);
-                          }
-                        }}
                         options={packages?.map((userPackage) => {
                           return {
                             label: (
@@ -473,63 +420,39 @@ const UserAddEditModal: React.FC<IUserModalProps> = (
                   </Col>
                   <Col xs={24} sm={24} md={12}>
                     <Form.Item
-                      label={
-                        <>
-                          Registration Discount
-                          <br /> Discounted Price: Rs. {discountRegistration}
-                        </>
-                      }
+                      label={"Registration Discount in Rs. (One Time)"}
                       id={"registration_discount"}
                       name={"registration_discount"}
                       initialValue={0}
                     >
-                      <Slider
+                      <ScalableInput
+                        size="middle"
+                        variant="filled"
+                        type="number"
                         defaultValue={0}
-                        onChange={(value) => {
-                          const userPackage = form.getFieldValue("userPackage");
-                          if (userPackage) {
-                            const selectedPkg = packages?.find(
-                              (pkg) => pkg._id === userPackage
-                            );
-                            if (selectedPkg) {
-                              const discountedPrice =
-                                selectedPkg.registration_price -
-                                (selectedPkg.registration_price * value) / 100;
-                              setDiscountRegistration(discountedPrice);
-                            }
-                          }
-                        }}
+                        name={"registration_discount"}
+                        placeholder={"0"}
+                        max={20000}
+                        min={0}
                       />
                     </Form.Item>
                   </Col>
                   <Col xs={24} sm={24} md={12}>
                     <Form.Item
-                      label={
-                        <>
-                          Membership Discount (Recurring)
-                          <br /> Discounted Price: Rs. {discountMembership}
-                        </>
-                      }
+                      label={"Membership Discount in Rs. (Recurring)"}
                       id={"membership_discount"}
                       name={"membership_discount"}
                       initialValue={0}
                     >
-                      <Slider
+                      <ScalableInput
+                        size="middle"
+                        variant="filled"
+                        type="number"
                         defaultValue={0}
-                        onChange={(value) => {
-                          const userPackage = form.getFieldValue("userPackage");
-                          if (userPackage) {
-                            const selectedPkg = packages?.find(
-                              (pkg) => pkg._id === userPackage
-                            );
-                            if (selectedPkg) {
-                              const discountedPrice =
-                                selectedPkg.price -
-                                (selectedPkg.price * value) / 100;
-                              setDiscountMembership(discountedPrice);
-                            }
-                          }
-                        }}
+                        name={"membership_discount"}
+                        placeholder={"0"}
+                        max={20000}
+                        min={0}
                       />
                     </Form.Item>
                   </Col>

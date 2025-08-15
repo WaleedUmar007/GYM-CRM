@@ -102,11 +102,11 @@ export const IUsersColumns: ColumnsType<IUsersColumnType> = [
       return (
         <>
           <Tag color={"purple"}>
-            <strong>Reg. Discount: {regDiscount || 0}%</strong>
+            <strong>Reg. Discount: Rs. {regDiscount || 0}</strong>
           </Tag>
           <br />
           <Tag color={"purple"}>
-            <strong>Membership Discount: {membershipDiscount || 0}%</strong>
+            <strong>Membership Discount: Rs. {membershipDiscount || 0}</strong>
           </Tag>
         </>
       );
@@ -400,11 +400,11 @@ export const IMembershipHistoryColumn: ColumnsType<ICommonMembershipAttr[]> = [
       return (
         <>
           <Tag color={"purple"}>
-            <strong>Reg. Discount: {regDiscount}%</strong>
+            <strong>Reg. Discount: Rs. {regDiscount}</strong>
           </Tag>
           <br />
           <Tag color={"purple"}>
-            <strong>Membership Discount: {membershipDiscount}%</strong>
+            <strong>Membership Discount: Rs. {membershipDiscount}</strong>
           </Tag>
         </>
       );
