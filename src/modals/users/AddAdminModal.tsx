@@ -33,7 +33,7 @@ const UserAddEditModal: React.FC<IUserModalProps> = (
 ) => {
   const { useBreakpoint } = Grid;
 
-  const { dataSet, setDataSet, mode } = props;
+  const { dataSet, setDataSet, mode, adminType = "gym" } = props;
 
   const [form] = Form.useForm();
   const { sm } = useBreakpoint();
@@ -77,6 +77,38 @@ const UserAddEditModal: React.FC<IUserModalProps> = (
       }
     }
   }, [dataSet]);
+
+  // Get dynamic labels based on admin type
+  const getLabels = () => {
+    switch (adminType) {
+      case "gym":
+        return {
+          organizationLabel: "Gym",
+          placeholderPrefix: "gym",
+          title: "Gym Admin"
+        };
+      case "inventory":
+        return {
+          organizationLabel: "Inventory",
+          placeholderPrefix: "inventory",
+          title: "Inventory Admin"
+        };
+      case "salon":
+        return {
+          organizationLabel: "Salon",
+          placeholderPrefix: "salon",
+          title: "Salon Admin"
+        };
+      default:
+        return {
+          organizationLabel: "Gym",
+          placeholderPrefix: "gym",
+          title: "Gym Admin"
+        };
+    }
+  };
+
+  const labels = getLabels();
 
   const fields = [
     {
@@ -127,7 +159,7 @@ const UserAddEditModal: React.FC<IUserModalProps> = (
       name: "email",
       id: "email",
       disabled: dataSet?._id !== undefined,
-      placeHolder: `gym@${window.env.REACT_APP_BRAND_DOMAIN.toLowerCase()}.com`,
+      placeHolder: `${labels.placeholderPrefix}@${window.env.REACT_APP_BRAND_DOMAIN.toLowerCase()}.com`,
       label: "Email",
       required: mode === "admins",
       hidden: false,
@@ -139,7 +171,7 @@ const UserAddEditModal: React.FC<IUserModalProps> = (
       disabled: mode === "members" && user?.role === UserRoles.Admin,
       placeHolder: "Lahore...",
       initialValue: user?.organization,
-      label: "Gym",
+      label: labels.organizationLabel,
       hidden: false,
       required: true,
     },
@@ -266,7 +298,7 @@ const UserAddEditModal: React.FC<IUserModalProps> = (
       >
         <ScalableCard
           bordered={false}
-          title={`${props.edit ? "Edit" : "Add"} User`}
+          title={`${props.edit ? "Edit" : "Add"} ${mode === "admins" ? labels.title : "User"}`}
           titlealign="center"
         >
           <Form onFinish={handleSubmit} layout="vertical" form={form}>

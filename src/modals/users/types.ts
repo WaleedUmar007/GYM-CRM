@@ -11,4 +11,5 @@ export interface IUserModalProps {
   addEventListener?: React.MouseEventHandler<HTMLElement>;
   user?: IUser | null;
   mode: "members" | "admins";
+  adminType?: "gym" | "inventory" | "salon";
 }

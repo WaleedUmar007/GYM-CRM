@@ -58,6 +58,8 @@ export default function SuperAdminMembersPage() {
     "members"
   );
   const [modalVisibility, setModalVisibility] = useState<boolean>(false);
+  const [adminTypeModalVisibility, setAdminTypeModalVisibility] = useState<boolean>(false);
+  const [selectedAdminType, setSelectedAdminType] = useState<"gym" | "inventory" | "salon">("gym");
   const { user } = useSelector(AuthSelector);
 
   const debouncedSearch = useCallback(
@@ -160,6 +162,7 @@ export default function SuperAdminMembersPage() {
         setModalVisibility={setModalVisibility}
         user={user}
         mode={userModalMode}
+        adminType={selectedAdminType}
       />
       <MembershipEditModal
         dataSet={dataSetMembership}
@@ -245,9 +248,7 @@ export default function SuperAdminMembersPage() {
             <button
               className="bg-blue-600 hover:bg-blue-700 text-white font-semibold px-4 py-2 rounded-md transition-colors text-base shadow-sm"
               onClick={() => {
-                setUserModalMode("admins");
-                setUserEditModal(false);
-                setModalVisibility(true);
+                setAdminTypeModalVisibility(true);
               }}
             >
               + Add Admin
@@ -380,6 +381,77 @@ export default function SuperAdminMembersPage() {
           </Form>
         </div>
       </div>
+
+      {/* Admin Type Selection Modal */}
+      {adminTypeModalVisibility && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+          <div className="bg-white rounded-lg p-6 w-full max-w-md">
+            <div className="flex justify-between items-center mb-6">
+              <h3 className="text-xl font-semibold text-gray-800">Select Admin Type</h3>
+              <button
+                onClick={() => setAdminTypeModalVisibility(false)}
+                className="bg-blue-100 hover:bg-blue-200 text-blue-600 hover:text-blue-700 rounded-full w-8 h-8 flex items-center justify-center text-xl font-bold transition-colors"
+              >
+                ×
+              </button>
+            </div>
+            <div className="space-y-4">
+              <p className="text-gray-600 mb-4">Choose the type of admin you want to add:</p>
+              
+              <button
+                onClick={() => {
+                  setSelectedAdminType("gym");
+                  setUserModalMode("admins");
+                  setUserEditModal(false);
+                  setAdminTypeModalVisibility(false);
+                  setModalVisibility(true);
+                }}
+                className="w-full flex items-center gap-3 p-4 bg-white border-2 border-blue-200 rounded-lg hover:bg-blue-50 hover:border-blue-400 transition-colors shadow-sm"
+              >
+                <div className="text-2xl">🏋️</div>
+                <div className="text-left">
+                  <div className="font-semibold text-gray-900">Gym Admin</div>
+                  <div className="text-sm text-gray-700">Manage gym members and operations</div>
+                </div>
+              </button>
+
+              <button
+                onClick={() => {
+                  setSelectedAdminType("inventory");
+                  setUserModalMode("admins");
+                  setUserEditModal(false);
+                  setAdminTypeModalVisibility(false);
+                  setModalVisibility(true);
+                }}
+                className="w-full flex items-center gap-3 p-4 bg-white border-2 border-green-200 rounded-lg hover:bg-green-50 hover:border-green-400 transition-colors shadow-sm"
+              >
+                <div className="text-2xl">📦</div>
+                <div className="text-left">
+                  <div className="font-semibold text-gray-900">Inventory Admin</div>
+                  <div className="text-sm text-gray-700">Manage inventory and stock</div>
+                </div>
+              </button>
+
+              <button
+                onClick={() => {
+                  setSelectedAdminType("salon");
+                  setUserModalMode("admins");
+                  setUserEditModal(false);
+                  setAdminTypeModalVisibility(false);
+                  setModalVisibility(true);
+                }}
+                className="w-full flex items-center gap-3 p-4 bg-white border-2 border-purple-200 rounded-lg hover:bg-purple-50 hover:border-purple-400 transition-colors shadow-sm"
+              >
+                <div className="text-2xl">💇</div>
+                <div className="text-left">
+                  <div className="font-semibold text-gray-900">Salon Admin</div>
+                  <div className="text-sm text-gray-700">Manage salon services and clients</div>
+                </div>
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </>
   );
 }

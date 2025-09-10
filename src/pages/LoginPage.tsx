@@ -9,40 +9,59 @@ import { useNavigate } from "react-router-dom";
 export default function LoginPage() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
-  // const [error, setError] = useState("");
-  const dispatch = useAppDispatch();
-  const { isAuthenticated, user } = useSelector(AuthSelector);
   const navigate = useNavigate();
+  const dispatch = useAppDispatch();
+  const { user, isAuthenticated } = useSelector(AuthSelector);
 
   useEffect(() => {
+    // Clear any existing local session when visiting login page
+    localStorage.removeItem('localUser');
+    localStorage.removeItem('inventoryAdmin');
+    
+    // Load user from backend if token exists
     dispatch(loadUser());
-  }, []);
+  }, [dispatch]);
 
   useEffect(() => {
     if (isAuthenticated && user) {
-      if (user.role === UserRoles.Admin) {
-        navigate("/admin");
-      } else if (user.role === UserRoles.SuperAdmin) {
-        navigate("/superadmin");
+      console.log('LoginPage: Redirecting user:', user);
+      console.log('LoginPage: User role:', user.role);
+      console.log('LoginPage: User organization:', user.organization);
+      
+      // Redirect based on user role and organization
+      if (user.organization === "Inventory") {
+        console.log('LoginPage: Redirecting to inventory-admin');
+        navigate("/inventory-admin", { replace: true });
+      } else if (user.role === "super-admin") {
+        console.log('LoginPage: Redirecting to superadmin');
+        navigate("/superadmin", { replace: true });
+      } else if (user.role === "admin") {
+        console.log('LoginPage: Redirecting to admin');
+        navigate("/admin", { replace: true });
       }
     }
-  }, [isAuthenticated, user]);
+  }, [isAuthenticated, user, navigate]);
 
-  function handleLogin(e: React.FormEvent) {
+  async function handleLogin(e: React.FormEvent) {
     e.preventDefault();
     if (email !== "" && password !== "") {
-      dispatch(
-        login({
-          email: email,
-          password: password,
-        })
-      );
+      // Use Redux action to login with backend
+      const result = await dispatch(login({ email, password }));
+      
+      if (login.fulfilled.match(result)) {
+        // Login successful - navigation will be handled by useEffect above
+        console.log('Login successful');
+      } else {
+        // Login failed
+        alert("Invalid credentials! Please check your email and password.");
+      }
     }
   }
 
   return (
     <div className="w-full min-h-screen bg-[#f6faff] flex items-center justify-center px-4">
       <div className="w-full max-w-md bg-white rounded-xl shadow-xl p-8 flex flex-col items-center">
+
         <h2 className="text-2xl md:text-3xl font-extrabold text-gray-900 mb-2 text-center">
           Sign in to {window.env.REACT_APP_BRAND_FULL_NAME} CRM
         </h2>
