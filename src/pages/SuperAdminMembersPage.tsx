@@ -16,6 +16,12 @@ import { UserRoles } from "@/types";
 import UserAddEditModal from "@/modals/users/AddAdminModal";
 import type { IUser } from "@/types/ReduxTypes/user";
 import { getPackages } from "@/appRedux/actions/packageAction";
+import MembershipHistoryModal from "@/modals/membership/MembershipHistory";
+import type {
+  ICommonMembershipAttr,
+  Membership,
+} from "@/types/ReduxTypes/membership";
+import MembershipEditModal from "@/modals/membership/UpdateMembership";
 
 export default function SuperAdminMembersPage() {
   const [membersFilter, setMembersFilter] = useState<"members" | "admins">(
@@ -36,9 +42,24 @@ export default function SuperAdminMembersPage() {
     useSelector(UserSelector);
   const { packages, packageLoading } = useSelector(PackageSelector);
 
+  const [historyDataSet, setHistoryDataSet] = useState<Membership["history"]>();
+  const [historyModalVisibility, setHistoryModalVisibility] =
+    useState<boolean>(false);
+
+  const [dataSetMembership, setDataSetMembership] = useState<Membership>();
+  const [membershipEditModal, setMembershipEditModal] =
+    useState<boolean>(false);
+  const [membershipModalVisibility, setMembershipModalVisibility] =
+    useState<boolean>(false);
+
   const [dataSet, setDataSet] = useState<IUser>();
   const [userEditModal, setUserEditModal] = useState<boolean>(false);
+  const [userModalMode, setUserModalMode] = useState<"members" | "admins">(
+    "members"
+  );
   const [modalVisibility, setModalVisibility] = useState<boolean>(false);
+  const [adminTypeModalVisibility, setAdminTypeModalVisibility] = useState<boolean>(false);
+  const [selectedAdminType, setSelectedAdminType] = useState<"gym" | "inventory" | "salon">("gym");
   const { user } = useSelector(AuthSelector);
 
   const debouncedSearch = useCallback(
@@ -140,7 +161,21 @@ export default function SuperAdminMembersPage() {
         modalVisibility={modalVisibility}
         setModalVisibility={setModalVisibility}
         user={user}
-        mode={membersFilter}
+        mode={userModalMode}
+        adminType={selectedAdminType}
+      />
+      <MembershipEditModal
+        dataSet={dataSetMembership}
+        edit={membershipEditModal}
+        setDataSet={setDataSetMembership}
+        modalVisibility={membershipModalVisibility}
+        setModalVisibility={setMembershipModalVisibility}
+      />
+      <MembershipHistoryModal
+        dataSet={historyDataSet}
+        setDataSet={setHistoryDataSet}
+        modalVisibility={historyModalVisibility}
+        setModalVisibility={setHistoryModalVisibility}
       />
       <div className="p-8 bg-[#f6faff] min-h-screen w-full">
         {/* Cards */}
@@ -166,7 +201,7 @@ export default function SuperAdminMembersPage() {
               <div className="text-gray-500 text-sm mb-1">Number of Admins</div>
               <div className="text-2xl font-bold text-gray-900">
                 {
-                  users?.filter((user) => {
+                  admins?.filter((user) => {
                     return user.role === UserRoles.Admin;
                   }).length
                 }
@@ -198,15 +233,27 @@ export default function SuperAdminMembersPage() {
               Show Admins
             </button>
           </div>
-          <button
-            className="bg-blue-600 hover:bg-blue-700 text-white font-semibold px-4 py-2 rounded-md transition-colors text-base shadow-sm"
-            onClick={() => {
-              setUserEditModal(false);
-              setModalVisibility(true);
-            }}
-          >
-            + Add Admin
-          </button>
+          <div>
+            <button
+              className="bg-blue-600 hover:bg-blue-700 text-white font-semibold px-4 py-2 rounded-md transition-colors text-base shadow-sm"
+              onClick={() => {
+                setUserModalMode("members");
+                setUserEditModal(false);
+                setModalVisibility(true);
+              }}
+            >
+              + Add Member
+            </button>
+            &nbsp;&nbsp;
+            <button
+              className="bg-blue-600 hover:bg-blue-700 text-white font-semibold px-4 py-2 rounded-md transition-colors text-base shadow-sm"
+              onClick={() => {
+                setAdminTypeModalVisibility(true);
+              }}
+            >
+              + Add Admin
+            </button>
+          </div>
         </div>
         {/* Table */}
         <div className="bg-white rounded-lg shadow p-6 w-full overflow-x-auto">
@@ -275,12 +322,37 @@ export default function SuperAdminMembersPage() {
                     ? users.map((user) => {
                         return {
                           key: user._id,
+                          viewMembershipHistoryHandler: () => {
+                            setHistoryDataSet(
+                              user.membership?.history ||
+                                ([] as Array<ICommonMembershipAttr>)
+                            );
+                            setHistoryModalVisibility(true);
+                          },
+                          updateMembershipHandler: () => {
+                            setMembershipEditModal(true);
+                            setMembershipModalVisibility(true);
+                            setDataSetMembership(user.membership);
+                          },
+                          updateUser: () => {
+                            setUserModalMode(membersFilter);
+                            setDataSet(user);
+                            setUserEditModal(true);
+                            setModalVisibility(true);
+                          },
                           ...user,
                         };
                       })
                     : admins?.map((user) => {
                         return {
                           key: user._id,
+                          updateUser: () => {
+                            setUserModalMode(membersFilter);
+                            setDataSet(user);
+                            setUserEditModal(true);
+                            setModalVisibility(true);
+                            setSelectedAdminType(user?.admin_type || "gym");
+                          },
                           ...user,
                         };
                       })
@@ -310,6 +382,77 @@ export default function SuperAdminMembersPage() {
           </Form>
         </div>
       </div>
+
+      {/* Admin Type Selection Modal */}
+      {adminTypeModalVisibility && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+          <div className="bg-white rounded-lg p-6 w-full max-w-md">
+            <div className="flex justify-between items-center mb-6">
+              <h3 className="text-xl font-semibold text-gray-800">Select Admin Type</h3>
+              <button
+                onClick={() => setAdminTypeModalVisibility(false)}
+                className="bg-blue-100 hover:bg-blue-200 text-blue-600 hover:text-blue-700 rounded-full w-8 h-8 flex items-center justify-center text-xl font-bold transition-colors"
+              >
+                ×
+              </button>
+            </div>
+            <div className="space-y-4">
+              <p className="text-gray-600 mb-4">Choose the type of admin you want to add:</p>
+              
+              <button
+                onClick={() => {
+                  setSelectedAdminType("gym");
+                  setUserModalMode("admins");
+                  setUserEditModal(false);
+                  setAdminTypeModalVisibility(false);
+                  setModalVisibility(true);
+                }}
+                className="w-full flex items-center gap-3 p-4 bg-white border-2 border-blue-200 rounded-lg hover:bg-blue-50 hover:border-blue-400 transition-colors shadow-sm"
+              >
+                <div className="text-2xl">🏋️</div>
+                <div className="text-left">
+                  <div className="font-semibold text-gray-900">Gym Admin</div>
+                  <div className="text-sm text-gray-700">Manage gym members and operations</div>
+                </div>
+              </button>
+
+              <button
+                onClick={() => {
+                  setSelectedAdminType("inventory");
+                  setUserModalMode("admins");
+                  setUserEditModal(false);
+                  setAdminTypeModalVisibility(false);
+                  setModalVisibility(true);
+                }}
+                className="w-full flex items-center gap-3 p-4 bg-white border-2 border-green-200 rounded-lg hover:bg-green-50 hover:border-green-400 transition-colors shadow-sm"
+              >
+                <div className="text-2xl">📦</div>
+                <div className="text-left">
+                  <div className="font-semibold text-gray-900">Inventory Admin</div>
+                  <div className="text-sm text-gray-700">Manage inventory and stock</div>
+                </div>
+              </button>
+
+              <button
+                onClick={() => {
+                  setSelectedAdminType("salon");
+                  setUserModalMode("admins");
+                  setUserEditModal(false);
+                  setAdminTypeModalVisibility(false);
+                  setModalVisibility(true);
+                }}
+                className="w-full flex items-center gap-3 p-4 bg-white border-2 border-purple-200 rounded-lg hover:bg-purple-50 hover:border-purple-400 transition-colors shadow-sm"
+              >
+                <div className="text-2xl">💇</div>
+                <div className="text-left">
+                  <div className="font-semibold text-gray-900">Salon Admin</div>
+                  <div className="text-sm text-gray-700">Manage salon services and clients</div>
+                </div>
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </>
   );
 }

@@ -14,10 +14,11 @@ import { handlerError } from "@/utils/ErrorHandler";
 import { updateAlert } from "./alertAction";
 import { createAsyncThunk } from "@reduxjs/toolkit";
 import type {
+  IUser,
   IUserAddEditFormData,
   IUserDeleteData,
 } from "@/types/ReduxTypes/user";
-import type { ISearchParams } from "@/types";
+import { UserRoles, type ISearchParams } from "@/types";
 
 export const getAllUsers = createAsyncThunk(
   "user/getUserPaginated",
@@ -63,12 +64,14 @@ export const deleteUser = createAsyncThunk(
         ...config,
         data: { userIds: userIds },
       });
-      dispatch(
-        deleteUserSuccess({
-          userIds: res.data.data,
-          mode: mode,
-        })
-      );
+      if (mode !== "memberships") {
+        dispatch(
+          deleteUserSuccess({
+            userIds: res.data.data,
+            mode: mode,
+          })
+        );
+      }
       dispatch(
         updateAlert({
           place: "tc",
@@ -92,23 +95,31 @@ export const deleteUser = createAsyncThunk(
 export const addEditUser = createAsyncThunk(
   "user/addEditUser",
   async (data: IUserAddEditFormData, { dispatch }) => {
-    const body = JSON.stringify(data.data);
     try {
       const res = await BackendInstance.post(
         "user/add-update-user",
-        body,
-        config
+        data.data,
+        {
+          headers: {
+            "Content-Type": "multipart/form-data",
+          },
+        }
       );
       dispatch(
         addEditUserSuccess({
           data: res.data.data,
-          mode: data.mode,
+          mode:
+            (res?.data?.data as IUser)?.role === UserRoles.Admin
+              ? "admins"
+              : "members",
         })
       );
       dispatch(
         updateAlert({
           place: "tc",
-          message: "User added successfully!",
+          message: `User ${
+            (data.data as any)?.id ? "updated" : "added"
+          } successfully!`,
           type: "success",
         })
       );

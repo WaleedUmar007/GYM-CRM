@@ -49,6 +49,16 @@ const MembershipEditModal: React.FC<IMembershipModalProps> = (
           },
           form
         );
+        form.setFieldValue("registrationStatus", dataSet.registration_status);
+        form.setFieldValue(
+          "userPackage",
+          (dataSet.package as IPackage)?._id || dataSet.package
+        );
+        form.setFieldValue(
+          "clientId",
+          (dataSet?.client_id as any)?._id || dataSet.client_id
+        );
+        form.setFieldValue("paymentType", dataSet.paymentStatus);
         setForceRerender(forceRerender + 1);
       }
     }
@@ -68,11 +78,11 @@ const MembershipEditModal: React.FC<IMembershipModalProps> = (
     },
     {
       type: "text",
-      name: "membershipId",
-      id: "membershipId",
+      name: "membership_id",
+      id: "membership_id",
       disabled: true,
       placeHolder: "Membership ID",
-      initialValue: dataSet?._id,
+      initialValue: dataSet?.membership_id || "N/A",
       label: "Membership ID",
       required: false,
       hidden: false,
@@ -103,11 +113,31 @@ const MembershipEditModal: React.FC<IMembershipModalProps> = (
 
   const dropdownFields = [
     {
+      name: "registrationStatus",
+      id: "registrationStatus",
+      disabled: false,
+      placeHolder: "Cleared...",
+      label: "Registration Status",
+      required: true,
+      initialValue: dataSet?.registration_status,
+      variant: "filled",
+      options: [
+        {
+          label: "Cleared",
+          value: "cleared",
+        },
+        {
+          label: "Pending",
+          value: "pending",
+        },
+      ],
+    },
+    {
       name: "paymentType",
       id: "paymentType",
       disabled: false,
       placeHolder: "Payment Type",
-      label: "Payment Type",
+      label: "Payment Status",
       required: true,
       initialValue: dataSet?.paymentStatus,
       variant: "filled",
@@ -160,12 +190,35 @@ const MembershipEditModal: React.FC<IMembershipModalProps> = (
           label: (
             <>
               {userPackage.name}&nbsp;
-              <Tag color="purple">Rs {userPackage.price}</Tag>
+              <Tag color="purple">Monthly Fee's: Rs {userPackage.price}</Tag>
+              <Tag color="cyan">
+                Registration Fee's: {userPackage.registration_price}
+              </Tag>
             </>
           ),
           value: userPackage._id,
         };
       }),
+    },
+    {
+      name: "payment_mode",
+      id: "payment_mode",
+      disabled: false,
+      placeholder: "Cash...",
+      label: "Payment Mode",
+      required: true,
+      initialValue: dataSet?.payment_mode,
+      variant: "filled",
+      options: [
+        {
+          label: "Online",
+          value: "online",
+        },
+        {
+          label: "Cash",
+          value: "cash",
+        },
+      ],
     },
   ];
 
@@ -279,6 +332,44 @@ const MembershipEditModal: React.FC<IMembershipModalProps> = (
                   </Col>
                 );
               })}
+              <Col xs={24} sm={24} md={12}>
+                <Form.Item
+                  label={"Registration Discount in Rs. (One Time)"}
+                  id={"registration_discount"}
+                  name={"registration_discount"}
+                  initialValue={0}
+                >
+                  <ScalableInput
+                    size="middle"
+                    variant="filled"
+                    type="number"
+                    defaultValue={0}
+                    name={"registration_discount"}
+                    placeholder={"0"}
+                    max={20000}
+                    min={0}
+                  />
+                </Form.Item>
+              </Col>
+              <Col xs={24} sm={24} md={12}>
+                <Form.Item
+                  label={"Membership Discount in Rs. (Recurring)"}
+                  id={"membership_discount"}
+                  name={"membership_discount"}
+                  initialValue={0}
+                >
+                  <ScalableInput
+                    size="middle"
+                    variant="filled"
+                    type="number"
+                    defaultValue={0}
+                    name={"membership_discount"}
+                    placeholder={"0"}
+                    max={20000}
+                    min={0}
+                  />
+                </Form.Item>
+              </Col>
             </Row>
             <Row justify="center">
               <Col>

@@ -26,7 +26,13 @@ const RequireAuth = ({ children }: IAuthParams) => {
     (async () => {
       await dispatch(loadUser());
       if (isAuthenticated && user) {
+        console.log('RequireAuth: User authenticated:', user);
         if (user.role === UserRoles.Admin) {
+          // Don't redirect inventory admins - they have their own routing
+          if (user.organization === "Inventory") {
+            console.log('RequireAuth: Inventory admin detected, not redirecting');
+            return;
+          }
           navigate("/admin");
         } else if (user.role === UserRoles.SuperAdmin) {
           navigate("/superadmin");

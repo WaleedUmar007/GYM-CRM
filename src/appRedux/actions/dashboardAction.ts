@@ -76,6 +76,19 @@ export const getDashboardStatistics = createAsyncThunk(
   async (_, { dispatch, getState }) => {
     try {
       const authState = AuthSelector(getState() as RootState);
+      
+      // Skip API calls for inventory admin (hardcoded user)
+      if (authState?.user?.organization === "Inventory") {
+        // Set mock data for inventory admin
+        dispatch(getTopCardStatisticSuccess({
+          totalMemberships: 156,
+          totalActiveMemberships: 131,
+          totalAmountEarned: 45000,
+          totalAmountPending: 12000,
+        }));
+        return true;
+      }
+      
       const promises = [dispatch(getDashboardTopCardStats())];
       if (authState?.user?.role === UserRoles.Admin) {
         promises.push(dispatch(getDashboardPackageDistribution()));

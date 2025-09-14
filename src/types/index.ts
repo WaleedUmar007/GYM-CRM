@@ -6,12 +6,26 @@ export const UserRoles = {
   Admin: "admin" as UserRoles,
   Member: "member" as UserRoles,
 };
+export type AdminType = "gym" | "inventory" | "salon";
+export const AdminType = {
+  Gym : 'gym' as AdminType,
+  Inventory: 'inventory' as AdminType,
+  Salon: 'salon' as AdminType,
+}
+
 
 export type Environment = "production" | "development" | "testing";
 export const Environment = {
   Production: "production" as Environment,
   Development: "development" as Environment,
   Testing: "testing" as Environment,
+};
+
+export type PaymentMode = 'online' | 'cash' | 'n/a';
+export const PaymentMode = {
+  Online: 'online' as PaymentMode,
+  Cash: 'cash' as PaymentMode,
+  NA: 'n/a' as PaymentMode,
 };
 
 export const AuthErrors = {

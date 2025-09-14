@@ -6,8 +6,10 @@ import store from "@/appRedux/store";
 import AdminLayout from "@/layouts/AdminLayout";
 import RequireAuth from "@/routing/RequireAuth";
 import type { IRoute } from "@/routing/types";
-import { adminRoutes, superAdminRoutes } from "@/routing";
+import { adminRoutes, superAdminRoutes, inventoryAdminRoutes } from "@/routing";
 import SuperAdminLayout from "@/layouts/SuperAdminLayout";
+import InventoryAdminLayout from "@/layouts/InventoryAdminLayout";
+import InventoryAdminDashboard from "@/pages/InventoryAdminDashboard";
 import Alert from "@/components/alert";
 
 function App() {
@@ -47,7 +49,7 @@ function App() {
       <Router>
         <Alert />
         <Routes>
-          <Route path="*" element={<LandingPage />} />
+          <Route path="/" element={<LandingPage />} />
           <Route path="/login" element={<LoginPage />} />
 
           <Route
@@ -71,6 +73,20 @@ function App() {
           >
             {developRecursiveRoutes(superAdminRoutes)}
           </Route>
+
+          <Route
+            path="inventory-admin"
+            element={
+              <RequireAuth>
+                <InventoryAdminLayout />
+              </RequireAuth>
+            }
+          >
+            <Route index element={<InventoryAdminDashboard />} />
+            {developRecursiveRoutes(inventoryAdminRoutes)}
+          </Route>
+
+          <Route path="*" element={<LandingPage />} />
         </Routes>
       </Router>
     </Provider>

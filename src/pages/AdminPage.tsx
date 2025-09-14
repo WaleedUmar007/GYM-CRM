@@ -1,6 +1,7 @@
 import { getDashboardStatistics } from "@/appRedux/actions/dashboardAction";
 import { getAllMemberships } from "@/appRedux/actions/membershipAction";
 import { getPackages } from "@/appRedux/actions/packageAction";
+import { deleteUser } from "@/appRedux/actions/userAction";
 import {
   DashboardSelector,
   MembershipSelector,
@@ -30,12 +31,14 @@ export default function AdminPage() {
   const [pageSize, setPageSize] = useState(10);
   const [currentPage, setCurrentPage] = useState(1);
   const [selectedUsers, setSelectedUsers] = useState(Array<string>);
+  const [deleteBtnDisabled, setDeleteBtnDisabled] = useState(true);
 
   const dispatch = useAppDispatch();
   const { packages, packageLoading } = useSelector(PackageSelector);
-  const { memberships, membershipLoading, totalDocumentsMemberships } = useSelector(MembershipSelector);
+  const { memberships, membershipLoading, totalDocumentsMemberships } =
+    useSelector(MembershipSelector);
 
-  const [dataSet, setDataSet] = useState<IUser>();
+  const [dataSet, setDataSet] = useState<Record<string, any>>();
   const [userEditModal, setUserEditModal] = useState<boolean>(false);
   const [modalVisibility, setModalVisibility] = useState<boolean>(false);
 
@@ -72,6 +75,7 @@ export default function AdminPage() {
           page: 1,
           pageSize: 10,
           searchString: searchRef.current,
+          admins: false,
         })
       );
     }
@@ -99,7 +103,11 @@ export default function AdminPage() {
     setSelectedUsers(updatedSelectedUsers);
     setLoading(true);
     await dispatch(
-      getAllMemberships({ page: page, pageSize: currentPageSize })
+      getAllMemberships({
+        page: page,
+        pageSize: currentPageSize,
+        admins: false,
+      })
     );
     setLoading(false);
     form.setFieldsValue({ payloads: updatedSelectedUsers });
@@ -128,6 +136,7 @@ export default function AdminPage() {
             page: curPage,
             pageSize: currentPageSize,
             searchString: searchRef.current,
+            admins: false,
           })
         );
       }
@@ -139,11 +148,12 @@ export default function AdminPage() {
   return (
     <>
       <UserAddEditModal
-        dataSet={dataSet}
+        dataSet={dataSet as IUser}
         edit={userEditModal}
         setDataSet={setDataSet}
         modalVisibility={modalVisibility}
         setModalVisibility={setModalVisibility}
+        mode={"members"}
       />
       <MembershipEditModal
         dataSet={dataSetMembership}
@@ -206,7 +216,8 @@ export default function AdminPage() {
           add={false}
           search={true}
           refresh={true}
-          deleteAll={false}
+          deleteAll={true}
+          deleteBtnDisabled={deleteBtnDisabled}
           variant="filled"
           refreshEventListener={async () => {
             setLoading(true);
@@ -217,11 +228,31 @@ export default function AdminPage() {
                 page: currentPage,
                 pageSize: pageSize,
                 searchString: search,
+                admins: false,
               })
             );
             setCurrentPage(1);
             setPageSize(10);
             setLoading(false);
+          }}
+          deleteEventListener={async () => {
+            await dispatch(
+              deleteUser({
+                userIds: form.getFieldValue("memberships"),
+                mode: "memberships",
+              })
+            );
+            await dispatch(
+              getAllMemberships({
+                page: 1,
+                pageSize: 10,
+                searchString: searchRef.current,
+                admins: false,
+              })
+            );
+            form.resetFields();
+            setPageSize(10);
+            setDeleteBtnDisabled(true);
           }}
           searchFieldHandler={(e) => {
             setSearch(e.target.value);
@@ -230,7 +261,18 @@ export default function AdminPage() {
             // show modal for add user
           }}
         />
-        <Form layout="vertical" form={form}>
+        <Form
+          layout="vertical"
+          onChange={() => {
+            setDeleteBtnDisabled(
+              !(
+                Array.isArray(form.getFieldValue("memberships")) &&
+                form.getFieldValue("memberships").length > 0
+              )
+            );
+          }}
+          form={form}
+        >
           <Form.Item name="memberships" hidden initialValue={[]} />
           <CustomTable
             form={{
@@ -240,7 +282,7 @@ export default function AdminPage() {
             dataSource={
               memberships?.map((membership) => {
                 return {
-                  key: membership._id,
+                  key: (membership.client_id as IUser)?._id,
                   updateMembershipHandler: () => {
                     setMembershipEditModal(true);
                     setMembershipModalVisibility(true);
@@ -250,8 +292,17 @@ export default function AdminPage() {
                     setHistoryDataSet(membership.history);
                     setHistoryModalVisibility(true);
                   },
+                  updateUser: () => {
+                    setDataSet({
+                      ...(membership.client_id as IUser),
+                      userPackage: (membership.package as IPackage)._id,
+                      membership_id: membership.membership_id || "N/A",
+                      membership: membership,
+                    });
+                    setUserEditModal(true);
+                    setModalVisibility(true);
+                  },
                   clientId: (membership.client_id as IUser)?._id,
-                  membershipId: membership._id,
                   userPackage: (membership.package as IPackage)?._id,
                   ...membership,
                 };
