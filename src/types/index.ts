@@ -6,6 +6,13 @@ export const UserRoles = {
   Admin: "admin" as UserRoles,
   Member: "member" as UserRoles,
 };
+export type AdminType = "gym" | "inventory" | "salon";
+export const AdminType = {
+  Gym : 'gym' as AdminType,
+  Inventory: 'inventory' as AdminType,
+  Salon: 'salon' as AdminType,
+}
+
 
 export type Environment = "production" | "development" | "testing";
 export const Environment = {

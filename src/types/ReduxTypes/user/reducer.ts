@@ -1,4 +1,4 @@
-import { UserRoles } from "types";
+import { AdminType, UserRoles } from "types";
 import type { Membership } from "../membership";
 
 export interface IUser {
@@ -14,6 +14,7 @@ export interface IUser {
   createdAt: string;
   membership?: Membership;
   avatar: string;
+  admin_type?: AdminType;
 }
 
 export interface IGetAllUser {

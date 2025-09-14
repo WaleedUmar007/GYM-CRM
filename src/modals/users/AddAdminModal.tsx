@@ -33,7 +33,7 @@ const UserAddEditModal: React.FC<IUserModalProps> = (
 ) => {
   const { useBreakpoint } = Grid;
 
-  const { dataSet, setDataSet, mode, adminType = "gym" } = props;
+  const { dataSet, setDataSet, mode, adminType } = props;
 
   const [form] = Form.useForm();
   const { sm } = useBreakpoint();
@@ -248,6 +248,8 @@ const UserAddEditModal: React.FC<IUserModalProps> = (
     if (profileList && profileList.length > 0 && profileList[0].originFileObj) {
       formData.append("file", profileList?.[0].originFileObj);
     }
+    if( mode === "admins") {
+    }formData.append("adminType", adminType || "gym");
     if (
       await dispatch(
         addEditUser({

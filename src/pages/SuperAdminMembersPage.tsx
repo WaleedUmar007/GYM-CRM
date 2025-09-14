@@ -351,6 +351,7 @@ export default function SuperAdminMembersPage() {
                             setDataSet(user);
                             setUserEditModal(true);
                             setModalVisibility(true);
+                            setSelectedAdminType(user?.admin_type || "gym");
                           },
                           ...user,
                         };

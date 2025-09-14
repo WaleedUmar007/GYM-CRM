@@ -10,6 +10,6 @@ export const BackendInstance = axios.create({
 
 export const config = {
   headers: {
-    "Content-Type": " application/json ", // application/x-www.form-urlencoded
+    "Content-Type": "application/json", // application/x-www.form-urlencoded
   },
 };
